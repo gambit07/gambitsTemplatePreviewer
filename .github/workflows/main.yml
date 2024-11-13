@@ -1,0 +1,93 @@
+name: Module Builder
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      release-notes: ${{ steps.set-release-notes.outputs.release-notes }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set Release Notes for Github
+        id: set-release-notes-github
+        run: |
+          echo "- Bugfixes:" >> release_notes.txt
+          echo "  - Silvery Barbs: Fix renaming the spell causing dialog to close immediately" >> release_notes.txt
+          echo "release-notes-github<<EOF" >> $GITHUB_ENV
+          cat release_notes.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Format Release Notes for Discord
+        id: format-release-notes-discord
+        run: |
+          DISCORD_NOTES=$(awk '{printf "%s\\n", $0}' release_notes.txt | sed 's/\\n$//')
+          echo "::set-output name=release-notes-discord::$DISCORD_NOTES"
+
+      - name: Get Version from Commit Message
+        id: get-version
+        run: |
+          version=$(git log -1 --pretty=%B | grep -o -E '[v]?[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^v//')
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "Extracted version: $version"
+
+      - name: Update module.json with Version
+        run: node update-module.js ${{ steps.get-version.outputs.version }}
+
+      - name: Zip Files
+        working-directory: ./
+        run: zip -r ./module.zip ./*
+
+      - name: Create Release
+        id: create-release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          name: Release ${{ steps.get-version.outputs.version }}
+          draft: false
+          prerelease: false
+          body: ${{ env.release-notes-github }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          artifacts: './module.zip, ./module.json'
+          tag: ${{ steps.get-version.outputs.version }}
+
+      - name: Release Foundry Package
+        run: |
+          curl -X POST "https://api.foundryvtt.com/_api/packages/release_version" \
+          -H "Content-Type: application/json" \
+          -H "Authorization: ${{ secrets.FOUNDRY_API_TOKEN }}" \
+          -d '{
+            "id": "'"gambits-premades"'",
+            "release": {
+              "version": "'"${{ steps.get-version.outputs.version }}"'",
+              "manifest": "'"https://github.com/gambit07/gambits-premades/releases/latest/download/module.json"'",
+              "download": "'"https://github.com/gambit07/gambits-premades/releases/download/${{ steps.get-version.outputs.version }}/module.zip"'",
+              "notes": "'"https://github.com/gambit07/gambits-premades/releases/tag/${{ steps.get-version.outputs.version }}"'",
+              "compatibility": {
+                "minimum": "'"12.328"'",
+                "verified": "'"12"'",
+                "maximum": "'"12"'"
+              }
+            }
+          }'
+
+      - name: Post to Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_MIDI_WEBHOOK }}
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d '{
+          "embeds": [{
+            "title": "Gambit'"'"'s Premades Release: ${{ steps.get-version.outputs.version }}",
+            "description": "**To support my continued work on this module!\n<https://ko-fi.com/gambit07> ❤️**\n\n${{ steps.format-release-notes-discord.outputs.release-notes-discord }}\n\nCheck it out through the Foundry package manager or the link below:\n<https://github.com/gambit07/gambits-premades/releases/tag/${{ steps.get-version.outputs.version }}>",
+            "image": {
+              "url": "https://avatars.githubusercontent.com/u/4236874?s=400&u=05d3718580ef87ea13467131a0c1fcaf4956630d&v=4"
+            }
+          }]
+          }' $DISCORD_WEBHOOK

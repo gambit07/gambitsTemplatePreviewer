@@ -1,0 +1,37 @@
+{
+  "id": "gambitsTemplatePreviewer",
+  "title": "Gambit's Template Previewer",
+  "description": "A tool to preview templates in Foundry VTT.",
+  "authors": [
+    {
+      "name": "Gambit",
+      "flags": {}
+    }
+  ],
+  "version": "",
+  "compatibility": {
+    "minimum": 12.328,
+    "verified": 12,
+    "maximum": 12
+  },
+  "esmodules": [
+    "scripts/module.js",
+	  "scripts/templatePreview.js"
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "3.2.1",
+          "verified": "3.2.1",
+          "maximum": "4"
+        }
+      }
+    ]
+  },
+  "url": "https://github.com/gambit07/gambitsTemplatePreviewer",
+  "manifest": "",
+  "download": ""
+}
