@@ -85,7 +85,8 @@ export async function generateTemplate() {
 
     await foundry.applications.api.DialogV2.wait({
         window: {
-            title: `Template Preview`
+            title: `Template Preview`,
+            minimizable: true
         },
         content: `
             <form>
@@ -152,6 +153,7 @@ export async function generateTemplate() {
 		render: (event) => {
 			const dialog = event.target.element;
 			const dialogInstance = event.target;
+            console.log(event, "event")
 
 			if (userFlags) {
 				dialogInstance.setPosition({ top: userFlags.top, left: userFlags.left });
@@ -171,7 +173,11 @@ export async function generateTemplate() {
 						previewInProgress = true;
 						setControlsDisabled(dialog, true);
 
+                        await dialogInstance.minimize();
+
 						await previewTemplate(type, dialog);
+
+                        await dialogInstance.maximize();
 
 						previewInProgress = false;
 						setControlsDisabled(dialog, false);
@@ -247,7 +253,11 @@ export async function generateTemplate() {
 							previewInProgress = true;
 							setControlsDisabled(dialog, true);
 
+                            await dialogInstance.minimize();
+
 							await previewTemplate(previewTemplateType, dialog);
+
+                            await dialogInstance.maximize();
 
 							previewInProgress = false;
 							setControlsDisabled(dialog, false);
