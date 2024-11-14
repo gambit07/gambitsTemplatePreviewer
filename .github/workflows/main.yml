@@ -18,7 +18,7 @@ jobs:
       - name: Set Release Notes for Github
         id: set-release-notes-github
         run: |
-          echo "Initial release! This tool was initially in my other module Gambits Premades, but I've decided to split it out into its own thing. The dialog window will now respect where the user placed it previously when it's re-opened." >> release_notes.txt
+          echo "Initial release! This tool was initially in my other module Gambits Premades, but Ive decided to split it out into its own thing. The dialog window will now respect where the user placed it previously when it's re-opened." >> release_notes.txt
           echo "release-notes-github<<EOF" >> $GITHUB_ENV
           cat release_notes.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
