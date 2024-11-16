@@ -60,15 +60,82 @@ function setControlsDisabled(dialog, disabled) {
     }
 }
 
+function addSliderListeners(dialog) {
+    const templateSizeRange = dialog.querySelector('#template-size');
+    const templateSizeDisplay = dialog.querySelector('#template-size-display');
+    const templateWidthRange = dialog.querySelector('#template-width');
+    const templateWidthDisplay = dialog.querySelector('#template-width-display');
+
+    if (templateSizeRange && templateSizeDisplay) {
+        templateSizeRange.addEventListener('input', () => {
+            templateSizeDisplay.value = templateSizeRange.value;
+        });
+        templateSizeDisplay.addEventListener('input', () => {
+            templateSizeRange.value = templateSizeDisplay.value;
+        });
+    }
+
+    if (templateWidthRange && templateWidthDisplay) {
+        templateWidthRange.addEventListener('input', () => {
+            templateWidthDisplay.value = templateWidthRange.value;
+        });
+        templateWidthDisplay.addEventListener('input', () => {
+            templateWidthRange.value = templateWidthDisplay.value;
+        });
+    }
+}
+
 function generateItemOptions(items, isV4) {
+    const gridUnits = canvas.scene.grid.units;
     return items.map(item => {
         const { targetType, targetSize, targetWidth } = getTemplateData(item, isV4);
-        return `<option value="${item.id}" data-type="${targetType}" data-size="${targetSize}" data-width="${targetWidth}">${item.name} (${targetSize} ft ${targetType}${targetWidth ? `, ${targetWidth} ft width` : ""})</option>`;
+        return `<option value="${item.id}" data-type="${targetType}" data-size="${targetSize}" data-width="${targetWidth}">${item.name} (${targetSize} ${gridUnits} ${targetType}${targetWidth ? `, ${targetWidth} ${gridUnits} width` : ""})</option>`;
     }).join("");
+}
+
+function generateSliderInputs(gridUnits, previewInProgress) {
+    const unitConfig = {
+        meters: {
+            min: 1.5,
+            step: 0.5,
+            max: 37,
+            value: 1.5
+        },
+        feet: {
+            min: 5,
+            step: 5,
+            max: 120,
+            value: 5
+        }
+    };
+
+    const config = ["meters", "m", "mt", "metri"].includes(gridUnits.toLowerCase())
+        ? unitConfig.meters
+        : unitConfig.feet;
+
+    const sliderTemplate = `
+        <div class="form-group">
+            <label for="template-size">Generic AoE Size (${gridUnits}):</label>
+            <div style="display: flex; align-items: center;">
+                <input type="range" id="template-size" name="template-size" value="${config.value}" min="${config.min}" max="${config.max}" step="${config.step}" style="flex: 1;" ${previewInProgress ? 'disabled' : ''}>
+                <input type="number" id="template-size-display" name="template-size-display" value="${config.value}" min="${config.min}" max="${config.max}" step="${config.step}" style="width: 50px; margin-left: 10px;" ${previewInProgress ? 'disabled' : ''}>
+            </div>
+        </div>
+        <div class="form-group" id="width-group" style="margin-top: 5px;">
+            <label for="template-width">Generic AoE Width (${gridUnits}):</label>
+            <div style="display: flex; align-items: center;">
+                <input type="range" id="template-width" name="template-width" value="${config.value}" min="${config.min}" max="${config.max}" step="${config.step}" style="flex: 1;" ${previewInProgress ? 'disabled' : ''}>
+                <input type="number" id="template-width-display" name="template-width-display" value="${config.value}" min="${config.min}" max="${config.max}" step="${config.step}" style="width: 50px; margin-left: 10px;" ${previewInProgress ? 'disabled' : ''}>
+            </div>
+        </div>
+    `;
+
+    return sliderTemplate;
 }
 
 export async function generateTemplate() {
     const isV4 = foundry.utils.isNewerVersion(game.system.version, "3.9.9");
+    const gridUnits = canvas.scene.grid.units;
 
     let pickedTokens = getPickedTokens();
     if (pickedTokens.length === 0) {
@@ -82,6 +149,7 @@ export async function generateTemplate() {
     const userFlags = game.user.getFlag("gambitsTemplatePreviewer", "dialog-position-generateTemplate");
 
     let previewInProgress = false;
+    const sliderInputs = generateSliderInputs(gridUnits, previewInProgress);
 
     await foundry.applications.api.DialogV2.wait({
         window: {
@@ -128,20 +196,7 @@ export async function generateTemplate() {
                 </div>
                 </div>
                 <hr/>
-                <div class="form-group">
-                <label for="template-size">Generic AoE Size (ft):</label>
-                <div style="display: flex; align-items: center;">
-                    <input type="range" id="template-size" name="template-size" value="20" min="5" max="120" step="5" style="flex: 1;" ${previewInProgress ? 'disabled' : ''}>
-                    <input type="number" id="template-size-display" name="template-size-display" value="20" min="5" max="120" step="5" style="width: 50px; margin-left: 10px;" ${previewInProgress ? 'disabled' : ''}>
-                </div>
-                </div>
-                <div class="form-group" id="width-group" style="margin-top: 5px;">
-                <label for="template-width">Generic AoE Width (ft):</label>
-                <div style="display: flex; align-items: center;">
-                    <input type="range" id="template-width" name="template-width" value="5" min="5" max="60" step="5" style="flex: 1;" ${previewInProgress ? 'disabled' : ''}>
-                    <input type="number" id="template-width-display" name="template-width-display" value="5" min="5" max="60" step="5" style="width: 50px; margin-left: 10px;" ${previewInProgress ? 'disabled' : ''}>
-                </div>
-                </div>
+                ${sliderInputs}
             </div>
             </form>
         `,
@@ -153,11 +208,12 @@ export async function generateTemplate() {
 		render: (event) => {
 			const dialog = event.target.element;
 			const dialogInstance = event.target;
-            console.log(event, "event")
 
 			if (userFlags) {
 				dialogInstance.setPosition({ top: userFlags.top, left: userFlags.left });
 			}
+
+            addSliderListeners(dialog);
 
 			const templateButtons = {
 				circle: dialog.querySelector('#circle-template'),
@@ -223,11 +279,6 @@ export async function generateTemplate() {
 						templateSizeDisplay.value = targetSize;
 						templateWidthRange.value = targetWidth;
 						templateWidthDisplay.value = targetWidth;						
-
-						templateSizeRange.addEventListener('input', () => { templateSizeDisplay.value = templateSizeRange.value });
-						templateSizeDisplay.addEventListener('input', () => { templateSizeRange.value = templateSizeDisplay.value });
-						templateWidthRange.addEventListener('input', () => { templateWidthDisplay.value = templateWidthRange.value });
-						templateWidthDisplay.addEventListener('input', () => { templateWidthRange.value = templateWidthDisplay.value });
 
 						let previewTemplateType;
 						switch (targetType) {
