@@ -326,22 +326,21 @@ export async function generateTemplate() {
 }
   
 async function previewTemplate(templateType, dialog) {
-    let size = dialog.querySelector('#template-size')?.value;
-    let width = templateType === 'ray' ? dialog.querySelector('#template-width')?.value : undefined;
-    let distance = parseInt(size);
+    let size = parseFloat(dialog.querySelector('#template-size')?.value);
+    let width = templateType === 'ray' ? parseFloat(dialog.querySelector('#template-width')?.value) : undefined;
     let actualTemplateType = (templateType === "rect") ? "ray" : templateType;
-
+    
     const templateData = {
         t: actualTemplateType,
         user: game.user.id,
         direction: 0,
         angle: templateType === "cone" ? 53.13 : templateType === "rect" ? 90 : 0,
-        distance: distance,
+        distance: size,
         borderColor: "#FF0000",
         fillAlpha: 0.5,
         fillColor: game.user.color,
         hidden: false,
-        width: templateType === "ray" ? parseInt(width) : templateType === 'rect' ? distance : undefined
+        width: templateType === "ray" ? width : templateType === 'rect' ? size : undefined
     };
 
     const templateDoc = new CONFIG.MeasuredTemplate.documentClass(templateData, { parent: canvas.scene });
