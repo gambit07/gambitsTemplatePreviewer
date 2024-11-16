@@ -18,7 +18,7 @@ jobs:
       - name: Set Release Notes for Github
         id: set-release-notes-github
         run: |
-          echo "- Added handling for users who use the metric system in their game. The tool will look for a value of m, mt, meters, or metri in grid scale units for a given scene. If one of those values is found, it will assume items are configured for metric, offer manual sizing options accordingly, and change dialog readouts to metric." >> release_notes.txt
+          echo "- Added handling for peeps using the metric system in their game. The tool will look for a value of m, mt, meters, or metri in grid scale units for a given scene. If one of those values is found, it will assume items are configured for metric, offer manual sizing options accordingly, and change dialog readouts to metric." >> release_notes.txt
           echo "release-notes-github<<EOF" >> $GITHUB_ENV
           cat release_notes.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
