@@ -18,7 +18,9 @@ jobs:
       - name: Set Release Notes for Github
         id: set-release-notes-github
         run: |
-          echo "- Fix metric not properly accounting for decimals." >> release_notes.txt
+          echo "- Added integration with Walled Templates. If installed, templates will now respect Walled Templates options per item or at the setting level if a default template is used." >> release_notes.txt
+          echo "- Fixed 5e V4 to use the correct item paths for activities." >> release_notes.txt
+          echo "- Fixed dialog not popping with default options if no valid tokens with templates are on a scene." >> release_notes.txt
           echo "release-notes-github<<EOF" >> $GITHUB_ENV
           cat release_notes.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV

@@ -1,5 +1,4 @@
-function getPickedTokens() {
-	let isV4 = foundry.utils.isNewerVersion(game.system.version, "3.9.9" );
+function getPickedTokens(isV4) {
     if (canvas.tokens.controlled.length === 1) {
         const selectedToken = canvas.tokens.controlled[0];
         if (selectedToken.document.testUserPermission(game.user, "OWNER") || game.user.isGM) {
@@ -21,7 +20,7 @@ function getTemplateData(item, isV4) {
     let targetType, targetSize, targetWidth;
 
     if (isV4) {
-        const activityWithTarget = item.activities?.contents.find(activity => activity.target?.template);
+        const activityWithTarget = item.system.activities?.contents.find(activity => activity.target?.template);
         if (activityWithTarget) {
             targetType = activityWithTarget.target.template.type;
             targetSize = activityWithTarget.target.template.size;
@@ -137,14 +136,16 @@ export async function generateTemplate() {
     const isV4 = foundry.utils.isNewerVersion(game.system.version, "3.9.9");
     const gridUnits = canvas.scene.grid.units;
 
-    let pickedTokens = getPickedTokens();
-    if (pickedTokens.length === 0) {
-        return;
-    }
+    let pickedTokens = getPickedTokens(isV4);
+    let tokenOptions = [];
+    let items = [];
+    let itemOptions;
 
-    const tokenOptions = pickedTokens.map(token => `<option value="${token.id}">${token.name}</option>`).join("");
-    let items = pickedTokens[0].actor.items.filter(item => hasValidTemplate(item, isV4)).sort((a, b) => a.name.localeCompare(b.name));
-    let itemOptions = generateItemOptions(items, isV4);
+    if (pickedTokens.length > 0) {
+        tokenOptions = pickedTokens.map(token => `<option value="${token.id}">${token.name}</option>`).join("");
+        items = pickedTokens[0].actor.items.filter(item => hasValidTemplate(item, isV4)).sort((a, b) => a.name.localeCompare(b.name));
+        itemOptions = generateItemOptions(items, isV4);
+    }
 
     const userFlags = game.user.getFlag("gambitsTemplatePreviewer", "dialog-position-generateTemplate");
 
@@ -224,15 +225,14 @@ export async function generateTemplate() {
 
 			Object.keys(templateButtons).forEach(type => {
 				if (templateButtons[type]) {
+                    const walledTemplateFlags = getWalledTemplateFlags({}, type);
 					templateButtons[type].addEventListener('click', async () => {
 						if (previewInProgress) return;
 						previewInProgress = true;
 						setControlsDisabled(dialog, true);
 
                         await dialogInstance.minimize();
-
-						await previewTemplate(type, dialog);
-
+						await previewTemplate(type, dialog, walledTemplateFlags);
                         await dialogInstance.maximize();
 
 						previewInProgress = false;
@@ -302,12 +302,11 @@ export async function generateTemplate() {
 
 						if (previewTemplateType) {
 							previewInProgress = true;
+                            const walledTemplateFlags = getWalledTemplateFlags(selectedItem, previewTemplateType);
 							setControlsDisabled(dialog, true);
 
                             await dialogInstance.minimize();
-
-							await previewTemplate(previewTemplateType, dialog);
-
+							await previewTemplate(previewTemplateType, dialog, walledTemplateFlags);
                             await dialogInstance.maximize();
 
 							previewInProgress = false;
@@ -325,7 +324,7 @@ export async function generateTemplate() {
     });
 }
   
-async function previewTemplate(templateType, dialog) {
+async function previewTemplate(templateType, dialog, walledTemplateFlags) {
     let size = parseFloat(dialog.querySelector('#template-size')?.value);
     let width = templateType === 'ray' ? parseFloat(dialog.querySelector('#template-width')?.value) : undefined;
     let actualTemplateType = (templateType === "rect") ? "ray" : templateType;
@@ -340,7 +339,8 @@ async function previewTemplate(templateType, dialog) {
         fillAlpha: 0.5,
         fillColor: game.user.color,
         hidden: false,
-        width: templateType === "ray" ? width : templateType === 'rect' ? size : undefined
+        width: templateType === "ray" ? width : templateType === 'rect' ? size : undefined,
+        flags: {walledtemplates: walledTemplateFlags}
     };
 
     const templateDoc = new CONFIG.MeasuredTemplate.documentClass(templateData, { parent: canvas.scene });
@@ -358,7 +358,7 @@ async function previewTemplate(templateType, dialog) {
             token.setTarget(false, { user: game.user });
         });
     } catch (error) {
-        console.error('Error during template preview:', error);
+        if(error) console.error('Error during template preview:', error);
     }
 }
 
@@ -366,7 +366,7 @@ function hasValidTemplate(item, isV4) {
     let targetType, targetSize;
 
     if (isV4) {
-        const activityWithTarget = item.activities?.contents.find(activity => activity.target?.template);
+        const activityWithTarget = item.system.activities?.contents.find(activity => activity.target?.template);
 
         if (activityWithTarget) {
             targetType = activityWithTarget.target.template.type;
@@ -389,4 +389,14 @@ function hasValidTemplate(item, isV4) {
     }
 
     return true;
+}
+
+function getWalledTemplateFlags(item, type) {
+    return {
+        wallsBlock: item?.flags?.walledtemplates?.wallsBlock ?? "globalDefault",
+        wallRestriction: item?.flags?.walledtemplates?.wallRestriction ?? "globalDefault",
+        snapCenter: item?.flags?.walledtemplates?.snapCenter ?? game.settings.get('walledtemplates', `default-${type}-snapping-center`) ?? false,
+        snapCorner: item?.flags?.walledtemplates?.snapCorner ?? game.settings.get('walledtemplates', `default-${type}-snapping-corner`) ?? false,
+        snapSideMidpoint: item?.flags?.walledtemplates?.snapSideMidpoint ?? game.settings.get('walledtemplates', `default-${type}-snapping-side-midpoint`) ?? false
+    };
 }
