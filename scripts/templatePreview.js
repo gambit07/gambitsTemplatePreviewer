@@ -392,6 +392,8 @@ function hasValidTemplate(item, isV4) {
 }
 
 function getWalledTemplateFlags(item, type) {
+    if (!game.modules.get("walledtemplates")?.active) return {};
+
     return {
         wallsBlock: item?.flags?.walledtemplates?.wallsBlock ?? "globalDefault",
         wallRestriction: item?.flags?.walledtemplates?.wallRestriction ?? "globalDefault",
