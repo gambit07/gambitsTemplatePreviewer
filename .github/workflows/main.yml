@@ -18,7 +18,7 @@ jobs:
       - name: Set Release Notes for Github
         id: set-release-notes-github
         run: |
-          echo "- Forgot game.settings.get does not fail gracefully, fix for failure if WT not present/disabled" >> release_notes.txt
+          echo "- Update module.json for 5e 4.1.2 compat" >> release_notes.txt
           echo "release-notes-github<<EOF" >> $GITHUB_ENV
           cat release_notes.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
