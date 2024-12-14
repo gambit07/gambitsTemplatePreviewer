@@ -333,7 +333,7 @@ async function previewTemplate(templateType, dialog, walledTemplateFlags) {
         t: actualTemplateType,
         user: game.user.id,
         direction: 0,
-        angle: templateType === "cone" ? 53.13 : templateType === "rect" ? 90 : 0,
+        angle: templateType === "cone" ? CONFIG.MeasuredTemplate.defaults.angle : templateType === "rect" ? 90 : 0,
         distance: size,
         borderColor: "#FF0000",
         fillAlpha: 0.5,
