@@ -17,3 +17,7 @@ Hooks.once('init', async function() {
 	}
 	});
 });
+
+Hooks.once('ready', async function() {
+	game.user.unsetFlag("gambitsTemplatePreviewer", "dialogOpen");
+});
