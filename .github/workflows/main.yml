@@ -18,7 +18,7 @@ jobs:
       - name: Set Release Notes for Github
         id: set-release-notes-github
         run: |
-          echo "- Add some handling to make sure the dialog is not opened multiple times" >> release_notes.txt
+          echo "- Fix manifest location" >> release_notes.txt
           echo "release-notes-github<<EOF" >> $GITHUB_ENV
           cat release_notes.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
@@ -59,7 +59,7 @@ jobs:
             "id": "'"gambitsTemplatePreviewer"'",
             "release": {
               "version": "'"${{ steps.get-version.outputs.version }}"'",
-              "manifest": "'"https://github.com/gambit07/gambitsTemplatePreviewer/releases/latest/download/module.json"'",
+              "manifest": "'"https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.json"'",
               "download": "'"https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.zip"'",
               "notes": "'"https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}"'",
               "compatibility": {

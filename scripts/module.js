@@ -1,6 +1,10 @@
 import { generateTemplate } from './templatePreview.js';
 
 Hooks.once('init', async function() {
+	if (!game.gambitsTemplatePreviewer) {
+		game.gambitsTemplatePreviewer = { dialogOpen: false };
+	}
+
 	Hooks.on('getSceneControlButtons', (controls) => {
 	const sidebarControls = controls.find(control => control.name === "token");
 
@@ -16,8 +20,4 @@ Hooks.once('init', async function() {
 		});
 	}
 	});
-});
-
-Hooks.once('ready', async function() {
-	game.user.unsetFlag("gambitsTemplatePreviewer", "dialogOpen");
 });

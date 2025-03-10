@@ -133,10 +133,8 @@ function generateSliderInputs(gridUnits, previewInProgress) {
 }
 
 export async function generateTemplate() {
-    if (game.user.getFlag("gambitsTemplatePreviewer", "dialogOpen")) {
-        return;
-    }
-    game.user.setFlag("gambitsTemplatePreviewer", "dialogOpen", true);
+    if (game.gambitsTemplatePreviewer.dialogOpen) return;
+    game.gambitsTemplatePreviewer.dialogOpen = true;
     
     const isV4 = foundry.utils.isNewerVersion(game.system.version, "3.9.9");
     const gridUnits = canvas.scene.grid.units;
@@ -324,7 +322,7 @@ export async function generateTemplate() {
         close: (event) => {
             const { top, left } = event.target.position;
             game.user.setFlag("gambitsTemplatePreviewer", "dialog-position-generateTemplate", { top, left });
-            game.user.unsetFlag("gambitsTemplatePreviewer", "dialogOpen");
+            game.gambitsTemplatePreviewer.dialogOpen = false;
         },
         rejectClose: false
     });
