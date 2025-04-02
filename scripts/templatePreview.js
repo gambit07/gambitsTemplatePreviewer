@@ -206,7 +206,8 @@ export async function generateTemplate() {
         `,
         buttons: [{
             action: "close",
-            label: `<i class='fas fa-times' style='margin-right: 5px;'></i>Close`,
+            label: "Close",
+            icon: "fas fa-times",
             default: true
         }],
 		render: (event) => {
