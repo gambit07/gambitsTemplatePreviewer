@@ -1,43 +1,4 @@
-function getPickedTokens(isV4) {
-    if (canvas.tokens.controlled.length === 1) {
-        const selectedToken = canvas.tokens.controlled[0];
-        if (selectedToken.document.testUserPermission(game.user, "OWNER") || game.user.isGM) {
-            return [selectedToken];
-        } else {
-            ui.notifications.warn("You do not have permission to use the template tool on the selected token.");
-            return [];
-        }
-    } else {
-        let tokens = canvas.tokens.controlled.length > 1
-            ? canvas.tokens.controlled
-            : canvas.tokens.placeables.filter(token => (token.actor?.hasPlayerOwner && token.document.testUserPermission(game.user, "OWNER")) || game.user.isGM);
-
-        return tokens.filter(token => token?.actor?.items.some(item => hasValidTemplate(item, isV4)));
-    }
-}
-
-function getTemplateData(item, isV4) {
-    let targetType, targetSize, targetWidth;
-
-    if (isV4) {
-        const activityWithTarget = item.system.activities?.contents.find(activity => activity.target?.template);
-        if (activityWithTarget) {
-            targetType = activityWithTarget.target.template.type;
-            targetSize = activityWithTarget.target.template.size;
-            targetWidth = activityWithTarget.target.template?.width ?? undefined;
-        } else {
-            targetType = item.system.target?.template?.type;
-            targetSize = item.system.target?.template?.size;
-            targetWidth = item.system.target?.template?.width ?? undefined;
-        }
-    } else {
-        targetType = item.system?.target?.type;
-        targetSize = item.system?.target?.value;
-        targetWidth = item.system?.target?.width ?? undefined;
-    }
-
-    return { targetType, targetSize, targetWidth };
-}
+import * as utils from './utils.js';
 
 function setControlsDisabled(dialog, disabled) {
     dialog.querySelector('#token-select')?.setAttribute('disabled', disabled);
@@ -87,7 +48,7 @@ function addSliderListeners(dialog) {
 function generateItemOptions(items, isV4) {
     const gridUnits = canvas.scene.grid.units;
     return items.map(item => {
-        const { targetType, targetSize, targetWidth } = getTemplateData(item, isV4);
+        const { targetType, targetSize, targetWidth } = utils.getTemplateData(item, isV4);
         return `<option value="${item.id}" data-type="${targetType}" data-size="${targetSize}" data-width="${targetWidth}">${item.name} (${targetSize} ${gridUnits} ${targetType}${targetWidth ? `, ${targetWidth} ${gridUnits} width` : ""})</option>`;
     }).join("");
 }
@@ -139,14 +100,14 @@ export async function generateTemplate() {
     const isV4 = foundry.utils.isNewerVersion(game.system.version, "3.9.9");
     const gridUnits = canvas.scene.grid.units;
 
-    let pickedTokens = getPickedTokens(isV4);
+    let pickedTokens = utils.getPickedTokens(isV4);
     let tokenOptions = [];
     let items = [];
     let itemOptions;
 
     if (pickedTokens.length > 0) {
         tokenOptions = pickedTokens.map(token => `<option value="${token.id}">${token.name}</option>`).join("");
-        items = pickedTokens[0].actor.items.filter(item => hasValidTemplate(item, isV4)).sort((a, b) => a.name.localeCompare(b.name));
+        items = pickedTokens[0].actor.items.filter(item => utils.hasValidTemplate(item, isV4)).sort((a, b) => a.name.localeCompare(b.name));
         itemOptions = generateItemOptions(items, isV4);
     }
 
@@ -214,6 +175,8 @@ export async function generateTemplate() {
 			const dialog = event.target.element;
 			const dialogInstance = event.target;
 
+            utils.animateTitleBar(dialogInstance);
+
 			if (userFlags) {
 				dialogInstance.setPosition({ top: userFlags.top, left: userFlags.left });
 			}
@@ -229,7 +192,7 @@ export async function generateTemplate() {
 
 			Object.keys(templateButtons).forEach(type => {
 				if (templateButtons[type]) {
-                    const walledTemplateFlags = getWalledTemplateFlags({}, type);
+                    const walledTemplateFlags = utils.getWalledTemplateFlags({}, type);
 					templateButtons[type].addEventListener('click', async () => {
 						if (previewInProgress) return;
 						previewInProgress = true;
@@ -251,7 +214,7 @@ export async function generateTemplate() {
 					const selectedTokenId = this.value;
 					const selectedToken = pickedTokens.find(token => token.id === selectedTokenId);
 					if (selectedToken) {
-						items = selectedToken.actor.items.filter(item => hasValidTemplate(item, isV4)).sort((a, b) => a.name.localeCompare(b.name));
+						items = selectedToken.actor.items.filter(item => utils.hasValidTemplate(item, isV4)).sort((a, b) => a.name.localeCompare(b.name));
 						itemOptions = generateItemOptions(items, isV4);
 
 						const itemSelect = dialog.querySelector('#item-select');
@@ -270,7 +233,7 @@ export async function generateTemplate() {
 					const selectedItemId = this.value;
 					const selectedItem = items.find(item => item.id === selectedItemId);
 					if (selectedItem) {
-						let { targetType, targetSize, targetWidth } = getTemplateData(selectedItem, isV4);
+						let { targetType, targetSize, targetWidth } = utils.getTemplateData(selectedItem, isV4);
 						
 						if(!targetWidth) targetWidth = 5;
 						
@@ -306,7 +269,7 @@ export async function generateTemplate() {
 
 						if (previewTemplateType) {
 							previewInProgress = true;
-                            const walledTemplateFlags = getWalledTemplateFlags(selectedItem, previewTemplateType);
+                            const walledTemplateFlags = utils.getWalledTemplateFlags(selectedItem, previewTemplateType);
 							setControlsDisabled(dialog, true);
 
                             await dialogInstance.minimize();
@@ -365,45 +328,4 @@ async function previewTemplate(templateType, dialog, walledTemplateFlags) {
     } catch (error) {
         if(error) console.error('Error during template preview:', error);
     }
-}
-
-function hasValidTemplate(item, isV4) {
-    let targetType, targetSize;
-
-    if (isV4) {
-        const activityWithTarget = item.system.activities?.contents.find(activity => activity.target?.template);
-
-        if (activityWithTarget) {
-            targetType = activityWithTarget.target.template.type;
-            targetSize = activityWithTarget.target.template.size;
-        } else {
-            targetType = item.system.target?.template?.type;
-            targetSize = item.system.target?.template?.size;
-        }
-    } else {
-        targetType = item.system?.target?.type;
-        targetSize = item.system?.target?.value;
-    }
-
-    if (!targetSize || !["cone", "cube", "cylinder", "line", "radius", "sphere", "square", "wall"].includes(targetType)) {
-        return false;
-    }
-
-    if (item.type === "spell" && (item.system.level > 0 && item.system.preparation?.mode === "prepared" && !item.system.preparation.prepared)) {
-        return false;
-    }
-
-    return true;
-}
-
-function getWalledTemplateFlags(item, type) {
-    if (!game.modules.get("walledtemplates")?.active) return {};
-
-    return {
-        wallsBlock: item?.flags?.walledtemplates?.wallsBlock ?? "globalDefault",
-        wallRestriction: item?.flags?.walledtemplates?.wallRestriction ?? "globalDefault",
-        snapCenter: item?.flags?.walledtemplates?.snapCenter ?? game.settings.get('walledtemplates', `default-${type}-snapping-center`) ?? false,
-        snapCorner: item?.flags?.walledtemplates?.snapCorner ?? game.settings.get('walledtemplates', `default-${type}-snapping-corner`) ?? false,
-        snapSideMidpoint: item?.flags?.walledtemplates?.snapSideMidpoint ?? game.settings.get('walledtemplates', `default-${type}-snapping-side-midpoint`) ?? false
-    };
 }

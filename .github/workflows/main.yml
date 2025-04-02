@@ -18,7 +18,7 @@ jobs:
       - name: Set Release Notes for Github
         id: set-release-notes-github
         run: |
-          echo "- V13 Compatability, with extra module.json compatability this time" >> release_notes.txt
+          echo "- Added a bit of visual flair to the title bar and re-organized some utils" >> release_notes.txt
           echo "release-notes-github<<EOF" >> $GITHUB_ENV
           cat release_notes.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
