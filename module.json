@@ -28,6 +28,14 @@
           "verified": "4.3.8",
           "maximum": "4.9.9"
         }
+      },
+      {
+        "id": "pf2e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "6.11.0",
+          "verified": "6.11.1"
+        }
       }
     ]
   },
