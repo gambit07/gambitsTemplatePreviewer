@@ -232,6 +232,7 @@ export async function generateTemplate() {
 
 					const selectedItemId = this.value;
 					const selectedItem = items.find(item => item.id === selectedItemId);
+
 					if (selectedItem) {
 						let { targetType, targetSize, targetWidth } = utils.getTemplateData(selectedItem, isV4);
 						
@@ -251,6 +252,8 @@ export async function generateTemplate() {
 						switch (targetType) {
 							case "sphere":
 							case "radius":
+                            case "burst":
+                            case "emanation":
 							case "cylinder":
 								previewTemplateType = 'circle';
 								break;
@@ -298,34 +301,71 @@ async function previewTemplate(templateType, dialog, walledTemplateFlags) {
     let actualTemplateType = (templateType === "rect") ? "ray" : templateType;
     
     const templateData = {
-        t: actualTemplateType,
-        user: game.user.id,
-        direction: 0,
-        angle: templateType === "cone" ? CONFIG.MeasuredTemplate.defaults.angle : templateType === "rect" ? 90 : 0,
-        distance: size,
-        borderColor: "#FF0000",
-        fillAlpha: 0.5,
-        fillColor: game.user.color,
-        hidden: false,
-        width: templateType === "ray" ? width : templateType === 'rect' ? size : undefined,
-        flags: {walledtemplates: walledTemplateFlags}
+      t: actualTemplateType,
+      user: game.user.id,
+      direction: 0,
+      angle: templateType === "cone"
+        ? CONFIG.MeasuredTemplate.defaults.angle
+        : templateType === "rect"
+        ? 90
+        : 0,
+      distance: size,
+      borderColor: "#FF0000",
+      fillAlpha: 0.5,
+      fillColor: game.user.color,
+      hidden: false,
+      width: templateType === "ray" ? width : templateType === "rect" ? size : undefined,
+      flags: { walledtemplates: walledTemplateFlags }
     };
-
-    const templateDoc = new CONFIG.MeasuredTemplate.documentClass(templateData, { parent: canvas.scene });
-    const template = new game.dnd5e.canvas.AbilityTemplate(templateDoc);
-
-    try {
-        const createdTemplates = await template.drawPreview();
-
-        if (createdTemplates.length > 0) {
-            const firstTemplate = createdTemplates[0];
-            await firstTemplate.delete();
-        }
-
-        game.user.targets.forEach(token => {
-            token.setTarget(false, { user: game.user });
+  
+    if (game.system.id === "pf2e") {
+      try {
+        await canvas.templates.createPreview(templateData);
+        
+        const deletionPromise = new Promise((resolve) => {
+          const onFinalization = async (document) => {
+            try {
+              await canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", [document.id]);
+            } catch (err) {
+              console.error("PF2e: Error deleting finalized template", err);
+            }
+            cleanup();
+            resolve();
+          };
+  
+          const onRightClick = (event) => {
+            event.stopImmediatePropagation();
+            event.stopPropagation();
+            cleanup();
+            resolve();
+          };
+  
+          function cleanup() {
+            Hooks.off("createMeasuredTemplate", onFinalization);
+            canvas.stage.off("rightdown", onRightClick);
+          }
+  
+          Hooks.once("createMeasuredTemplate", onFinalization);
+          canvas.stage.once("rightdown", onRightClick);
         });
-    } catch (error) {
-        if(error) console.error('Error during template preview:', error);
+        
+        await deletionPromise;
+      } catch (error) {
+        console.error("PF2e: Error handling preview", error);
+      }
+    } else {
+      const templateDoc = new CONFIG.MeasuredTemplate.documentClass(templateData, { parent: canvas.scene });
+      const template = new game.dnd5e.canvas.AbilityTemplate(templateDoc);
+    
+      try {
+        const createdTemplates = await template.drawPreview();
+        if (createdTemplates.length > 0) {
+          const firstTemplate = createdTemplates[0];
+          await firstTemplate.delete();
+        }
+        game.user.targets.forEach(token => token.setTarget(false, { user: game.user }));
+      } catch (error) {
+        console.error('Error during template preview (5e):', error);
+      }
     }
-}
+  }

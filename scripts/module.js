@@ -17,7 +17,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
 			title: "Template Preview Tool",
 			icon: "fas fa-drafting-compass",
 			order: 6,
-			onClick: async () => {
+			onChange: async () => {
 				await generateTemplate();
 			},
 			button: true
