@@ -24,6 +24,12 @@ jobs:
           cat release_notes.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
+      - name: Format Release Notes for Discord
+        id: format-release-notes-discord
+        run: |
+          DISCORD_NOTES=$(awk '{printf "%s\\n", $0}' release_notes.txt | sed 's/\\n$//')
+          echo "::set-output name=release-notes-discord::$DISCORD_NOTES"
+
       - name: Get Version from Commit Message
         id: get-version
         run: |
@@ -76,12 +82,12 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_GTP_WEBHOOK }}
         run: |
           curl -H "Content-Type: application/json" \
-          -d '{
-          "embeds": [{
-            "title": "Gambit'"'"'s Template Previewer Release: ${{ steps.get-version.outputs.version }}",
-            "description": "**To support my continued work on this module!\n<https://www.patreon.com/GambitsLounge> ❤️**\n<https://ko-fi.com/gambit07> ❤️**\n\n${{ steps.format-release-notes-discord.outputs.release-notes-discord }}\n\nCheck it out through the Foundry package manager or the link below:\n<https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}>",
-            "image": {
-              "url": "https://avatars.githubusercontent.com/u/4236874?s=400&u=05d3718580ef87ea13467131a0c1fcaf4956630d&v=4"
-            }
-          }]
-          }' $DISCORD_WEBHOOK
+                -d '{
+                "embeds": [{
+                  "title": "Gambit'"'"'s Template Previewer Release: ${{ steps.get-version.outputs.version }}",
+                  "description": "**To support my continued work on this module!**\n[Patreon ❤️](https://www.patreon.com/GambitsLounge)\n[Ko-fi ❤️](https://ko-fi.com/gambit07)\n\n${{ steps.format-release-notes-discord.outputs.release-notes-discord }}\n\nCheck it out through the Foundry package manager or the link below:\n<https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}>",
+                  "image": {
+                    "url": "https://avatars.githubusercontent.com/u/4236874?s=400&u=05d3718580ef87ea13467131a0c1fcaf4956630d&v=4"
+                  }
+                }]
+                }' $DISCORD_WEBHOOK
