@@ -18,7 +18,8 @@ jobs:
       - name: Set Release Notes for Github
         id: set-release-notes-github
         run: |
-          echo "- Initial release for PF2E! Part(2)" >> release_notes.txt
+          echo "- Activities: Went through and re-worked activities for 5e. The menu will now pickup each activity for an item if each has a valid template. The menu will look for activity naming, if a default name (Use, Save, etc) or the same name as the item, the menu will use the default item name. If activity name is different, the activity will be appended to the item name, ie Item.name: Activity.name (ex. Call Lightning: Storm Bolt)" >> release_notes.txt
+          echo "- Fixed a bug with some wall type templates with a 1 foot width. The previewer will now display those correctly. Generic AOE Size and Generic AOE Width buttons will now maintain the last manually set value while the previewer dialog is open instead of updating to the last selected template size." >> release_notes.txt
           echo "release-notes-github<<EOF" >> $GITHUB_ENV
           cat release_notes.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
@@ -69,3 +70,18 @@ jobs:
               }
             }
           }'
+
+      - name: Post to GTP Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_GTP_WEBHOOK }}
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d '{
+          "embeds": [{
+            "title": "Gambit'"'"'s Template Previewer Release: ${{ steps.get-version.outputs.version }}",
+            "description": "**To support my continued work on this module!\n<https://www.patreon.com/GambitsLounge> ❤️**\n<https://ko-fi.com/gambit07> ❤️**\n\n${{ steps.format-release-notes-discord.outputs.release-notes-discord }}\n\nCheck it out through the Foundry package manager or the link below:\n<https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}>",
+            "image": {
+              "url": "https://avatars.githubusercontent.com/u/4236874?s=400&u=05d3718580ef87ea13467131a0c1fcaf4956630d&v=4"
+            }
+          }]
+          }' $DISCORD_WEBHOOK

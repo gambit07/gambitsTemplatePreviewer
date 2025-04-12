@@ -73,84 +73,112 @@ export function getPickedTokens(isV4) {
 }
 
 export function getTemplateData(item, isV4) {
-    if (game.system.id === "pf2e") {
-      const area = item.system.area;
-      if (area) {
-        let targetType, targetSize, targetWidth;
-        switch(area.type) {
-          case "burst":
-          case "emanation":
-            targetType = area.type;
-            targetSize = area.value;
-            break;
-          case "cone":
-            targetType = area.type;
-            targetSize = area.value;
-            break;
-          case "line":
-            targetType = area.type;
-            targetSize = area.value;
-            break;
-          default:
-            targetType = null;
-            targetSize = null;
-            targetWidth = null;
-        }
-        return { targetType, targetSize, targetWidth };
-      }
-      return {};
-    } else {
+  if (game.system.id === "pf2e") {
+    const area = item.system.area;
+    if (area) {
       let targetType, targetSize, targetWidth;
-      if (isV4) {
-        const activityWithTarget = item.system.activities?.contents.find(activity => activity.target?.template);
-        if (activityWithTarget) {
-            targetType = activityWithTarget.target.template.type;
-            targetSize = activityWithTarget.target.template.size;
-            targetWidth = activityWithTarget.target.template?.width ?? undefined;
-        } else {
-            targetType = item.system.target?.template?.type;
-            targetSize = item.system.target?.template?.size;
-            targetWidth = item.system.target?.template?.width ?? undefined;
-        }
-      } else {
-        targetType = item.system?.target?.type;
-        targetSize = item.system?.target?.value;
-        targetWidth = item.system?.target?.width ?? undefined;
+      switch (area.type) {
+        case "burst":
+        case "emanation":
+        case "cone":
+        case "line":
+          targetType = area.type;
+          targetSize = area.value;
+          targetWidth = area.width ?? null;
+          break;
+        default:
+          targetType = null;
+          targetSize = null;
+          targetWidth = null;
       }
-      return { targetType, targetSize, targetWidth };
+      return { 
+        templates: [{
+          targetType,
+          targetSize,
+          targetWidth,
+          label: item.name
+        }]
+      };
     }
-  }
-
-  export function hasValidTemplate(item, isV4) {
-    if (game.system.id === "pf2e") {
-      const area = item.system.area;
-      if (!area || !area.type || !area.value) return false;
-      if (!["burst", "cone", "emanation", "line"].includes(area.type)) return false;
-      return true;
+    return { templates: [] };
+  } else {
+    if (isV4) {
+      let templates = [];
+      if (item.system.activities?.contents) {
+        const ignoredNames = new Set(["Attack", "Cast", "Check", "Damage", "Enchant", "Forward", "Heal", "Save", "Summon", "Use"]);
+        
+        templates = item.system.activities.contents
+          .filter(activity => activity.target?.template?.type)
+          .map(activity => {
+            const activityName = activity.name ? activity.name.trim() : "";
+            let label;
+            
+            if (!activityName || ignoredNames.has(activityName) || item.name === activityName) {
+              label = item.name;
+            } else {
+              label = `${item.name}: ${activityName}`;
+            }
+            
+            return {
+              targetType: activity.target.template.type,
+              targetSize: activity.target.template.size,
+              targetWidth: activity.target.template.width ?? undefined,
+              label
+            };
+          });
+      }
+      if (!templates.length) {
+        templates.push({
+          targetType: item.system.target?.template?.type,
+          targetSize: item.system.target?.template?.size,
+          targetWidth: item.system.target?.template?.width ?? undefined,
+          label: item.name
+        });
+      }
+      return { templates };
     } else {
-      let targetType, targetSize;
-      if (isV4) {
-        const activityWithTarget = item.system.activities?.contents.find(activity => activity.target?.template);
-        if (activityWithTarget) {
-            targetType = activityWithTarget.target.template.type;
-            targetSize = activityWithTarget.target.template.size;
-        } else {
-            targetType = item.system.target?.template?.type;
-            targetSize = item.system.target?.template?.size;
-        }
-      } else {
-        targetType = item.system?.target?.type;
-        targetSize = item.system?.target?.value;
-      }
-      if (!targetSize || !["cone", "cube", "cylinder", "line", "radius", "sphere", "square", "wall"].includes(targetType)) {
-        return false;
-      }
-      if (item.type === "spell" && (item.system.level > 0 && item.system.preparation?.mode === "prepared" && !item.system.preparation.prepared)) {
-        return false;
-      }
-      return true;
+      return { 
+        templates: [{
+          targetType: item.system?.target?.type,
+          targetSize: item.system?.target?.value,
+          targetWidth: item.system?.target?.width ?? undefined,
+          label: item.name
+        }]
+      };
     }
   }
+}
+
+export function hasValidTemplate(item, isV4) {
+  if (game.system.id === "pf2e") {
+    const area = item.system.area;
+    if (!area || !area.type || !area.value) return false;
+    if (!["burst", "cone", "emanation", "line"].includes(area.type)) return false;
+    return true;
+  } else {
+    let targetType, targetSize;
+    if (isV4) {
+      const activityWithTarget = item.system.activities?.contents.find(activity => activity.target?.template);
+      if (activityWithTarget) {
+          targetType = activityWithTarget.target.template.type;
+          targetSize = activityWithTarget.target.template.size;
+      } else {
+          targetType = item.system.target?.template?.type;
+          targetSize = item.system.target?.template?.size;
+      }
+    } else {
+      targetType = item.system?.target?.type;
+      targetSize = item.system?.target?.value;
+    }
+    if (!targetSize || !["cone", "cube", "cylinder", "line", "radius", "sphere", "square", "wall", "circle", "emanationNoTemplate"].includes(targetType)) {
+      return false;
+    }
+    if (item.type === "spell" && (item.system.level > 0 && item.system.preparation?.mode === "prepared" && !item.system.preparation.prepared)) {
+      return false;
+    }
+    return true;
+  }
+}
 
 export function getWalledTemplateFlags(item, type) {
   if (!game.modules.get("walledtemplates")?.active) return {};

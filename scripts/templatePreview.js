@@ -48,8 +48,11 @@ function addSliderListeners(dialog) {
 function generateItemOptions(items, isV4) {
     const gridUnits = canvas.scene.grid.units;
     return items.map(item => {
-        const { targetType, targetSize, targetWidth } = utils.getTemplateData(item, isV4);
-        return `<option value="${item.id}" data-type="${targetType}" data-size="${targetSize}" data-width="${targetWidth}">${item.name} (${targetSize} ${gridUnits} ${targetType}${targetWidth ? `, ${targetWidth} ${gridUnits} width` : ""})</option>`;
+        const { templates } = utils.getTemplateData(item, isV4);
+
+        return templates.map(template => {
+        return `<option value="${item.id}" data-type="${template.targetType}" data-size="${template.targetSize}" data-width="${template.targetWidth}"> ${template.label} (${template.targetSize} ${gridUnits} ${template.targetType}${template.targetWidth ? `, ${template.targetWidth} ${gridUnits} width` : ""})</option>`;
+        }).join("");
     }).join("");
 }
 
@@ -198,8 +201,11 @@ export async function generateTemplate() {
 						previewInProgress = true;
 						setControlsDisabled(dialog, true);
 
+                        let targetSize = parseFloat(dialog.querySelector('#template-size')?.value);
+                        let targetWidth = parseFloat(dialog.querySelector('#template-width')?.value);
+
                         await dialogInstance.minimize();
-						await previewTemplate(type, dialog, walledTemplateFlags);
+						await previewTemplate(type, targetSize, targetWidth, walledTemplateFlags);
                         await dialogInstance.maximize();
 
 						previewInProgress = false;
@@ -231,58 +237,55 @@ export async function generateTemplate() {
 					if (previewInProgress) return;
 
 					const selectedItemId = this.value;
-					const selectedItem = items.find(item => item.id === selectedItemId);
+                    const selectedItem = items.find(item => item.id === selectedItemId);
+                    if (selectedItem) {
+                    const selectedOption = this.options[this.selectedIndex];
+                    const targetType = selectedOption.getAttribute("data-type");
+                    const targetSize = parseFloat(selectedOption.getAttribute("data-size"));
+                    let targetWidth = parseFloat(selectedOption.getAttribute("data-width"));
 
-					if (selectedItem) {
-						let { targetType, targetSize, targetWidth } = utils.getTemplateData(selectedItem, isV4);
-						
-						if(!targetWidth) targetWidth = 5;
-						
-						const templateSizeRange = dialog.querySelector('#template-size');
-						const templateSizeDisplay = dialog.querySelector('#template-size-display');
-						const templateWidthRange = dialog.querySelector('#template-width');
-						const templateWidthDisplay = dialog.querySelector('#template-width-display');
-						
-						templateSizeRange.value = targetSize;
-						templateSizeDisplay.value = targetSize;
-						templateWidthRange.value = targetWidth;
-						templateWidthDisplay.value = targetWidth;						
+                    const distConfig = ["meters", "m", "mt", "metri"].includes(gridUnits.toLowerCase())
+                    ? "meters"
+                    : "feet";
+                    if (isNaN(targetWidth)) distConfig === "feet" ? targetWidth = 5 : targetWidth === 1.5;
 
-						let previewTemplateType;
-						switch (targetType) {
-							case "sphere":
-							case "radius":
-                            case "burst":
-                            case "emanation":
-							case "cylinder":
-								previewTemplateType = 'circle';
-								break;
-							case "cube":
-							case "square":
-								previewTemplateType = 'rect';
-								break;
-							case "cone":
-								previewTemplateType = 'cone';
-								break;
-							case "line":
-							case "wall":
-								previewTemplateType = 'ray';
-								break;
-						}
+                    let previewTemplateType;
+                    switch (targetType) {
+                        case "sphere":
+                        case "radius":
+                        case "burst":
+                        case "emanation":
+                        case "cylinder":
+                        case "circle":
+                        case "emanationNoTemplate":
+                        previewTemplateType = 'circle';
+                        break;
+                        case "cube":
+                        case "square":
+                        previewTemplateType = 'rect';
+                        break;
+                        case "cone":
+                        previewTemplateType = 'cone';
+                        break;
+                        case "line":
+                        case "wall":
+                        previewTemplateType = 'ray';
+                        break;
+                    }
 
-						if (previewTemplateType) {
-							previewInProgress = true;
-                            const walledTemplateFlags = utils.getWalledTemplateFlags(selectedItem, previewTemplateType);
-							setControlsDisabled(dialog, true);
+                    if (previewTemplateType) {
+                        previewInProgress = true;
+                        const walledTemplateFlags = utils.getWalledTemplateFlags(selectedItem, previewTemplateType);
+                        setControlsDisabled(dialog, true);
 
-                            await dialogInstance.minimize();
-							await previewTemplate(previewTemplateType, dialog, walledTemplateFlags);
-                            await dialogInstance.maximize();
+                        await dialogInstance.minimize();
+                        await previewTemplate(previewTemplateType, targetSize, targetWidth, walledTemplateFlags);
+                        await dialogInstance.maximize();
 
-							previewInProgress = false;
-							setControlsDisabled(dialog, false);
-						}
-					}
+                        previewInProgress = false;
+                        setControlsDisabled(dialog, false);
+                    }
+                    }
 				});
 			}
 		},
@@ -295,9 +298,9 @@ export async function generateTemplate() {
     });
 }
   
-async function previewTemplate(templateType, dialog, walledTemplateFlags) {
-    let size = parseFloat(dialog.querySelector('#template-size')?.value);
-    let width = templateType === 'ray' ? parseFloat(dialog.querySelector('#template-width')?.value) : undefined;
+async function previewTemplate(templateType, targetSize, targetWidth, walledTemplateFlags) {
+    let size = targetSize;
+    let width = templateType === 'ray' ? targetWidth : undefined;
     let actualTemplateType = (templateType === "rect") ? "ray" : templateType;
     
     const templateData = {
