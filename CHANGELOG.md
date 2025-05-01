@@ -1,5 +1,12 @@
 # Changelog
 
+## [v2.0.7] - 2025-05-01
+- Added CHANGELOG.md file and updated it to contain previous release notes. The new version’s changelog will now display in a dialog on first load!
+- Updated module.json to enable 5e V5 compatibility
+- 5e: Remove targeting on tokens on right click, previously only worked on a left click.
+- Fixed V13 compatability, forgot to set the new max versions in the foundry release api
+- Fixed update dialog being shown on each reload
+
 ## [v2.0.6] - 2025-05-01
 - Added CHANGELOG.md file and updated it to contain previous release notes. The new version’s changelog will now display in a dialog on first load!
 - Updated module.json to enable 5e V5 compatibility
