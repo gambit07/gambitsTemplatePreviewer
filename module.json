@@ -8,7 +8,7 @@
       "flags": {}
     }
   ],
-  "version": "",
+  "version": "2.0.1",
   "compatibility": {
     "minimum": 12.328,
     "verified": 13.341,
@@ -16,7 +16,7 @@
   },
   "esmodules": [
     "scripts/module.js",
-	  "scripts/templatePreview.js"
+    "scripts/templatePreview.js"
   ],
   "relationships": {
     "systems": [
@@ -40,6 +40,6 @@
     ]
   },
   "url": "https://github.com/gambit07/gambitsTemplatePreviewer",
-  "manifest": "",
-  "download": ""
+  "manifest": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/latest/download/module.json",
+  "download": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/2.0.1/module.zip"
 }
