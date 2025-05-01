@@ -10,15 +10,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout & enable pushing
+        uses: actions/checkout@v4
         with:
           persist-credentials: true
 
       - name: Set Release Notes for Github
         id: set-release-notes-github
         run: |
-          echo "- Added CHANGELOG.md file and updated it to contain previous release notes. The new versions changelog will now display in a dialog on first load, which hopefully you are seeing now!" >> release_notes.txt
+          echo "- Added CHANGELOG.md file and updated it to contain previous release notes. The new version’s changelog will now display in a dialog on first load!" >> release_notes.txt
           echo "- Updated module.json to enable 5e V5 compatibility" >> release_notes.txt
           echo "- 5e: Remove targeting on tokens on right click, previously only worked on a left click." >> release_notes.txt
           echo "release-notes-github<<EOF" >> $GITHUB_ENV
@@ -34,32 +36,14 @@ jobs:
       - name: Get Version from Commit Message
         id: get-version
         run: |
-          version=$(git log -1 --pretty=%B | grep -o -E '[v]?[0-9]+\.[0-9]+\.[0-9]+' | sed 's/^v//')
+          version=$(git log -1 --pretty=%B \
+            | grep -o -E '[v]?[0-9]+\.[0-9]+\.[0-9]+' \
+            | sed 's/^v//')
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "Extracted version: $version"
 
-      - name: Update module.json with Version
-        run: node update-module.js ${{ steps.get-version.outputs.version }}
-
-      - name: Append to CHANGELOG.md
-        run: |
-          # use Detroit time
-          DATE=$(TZ=America/Detroit date +'%Y-%m-%d')
-          echo "" >> CHANGELOG.md
-          echo "## [v${{ steps.get-version.outputs.version }}] - $DATE" >> CHANGELOG.md
-          cat release_notes.txt >> CHANGELOG.md
-
-      - name: Commit version & CHANGELOG updates
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add module.json CHANGELOG.md
-          git commit -m "chore: release v${{ steps.get-version.outputs.version }}" || echo "No changes to commit"
-          git push
-
       - name: Zip Files
-        working-directory: ./
-        run: zip -r ./module.zip ./*
+        run: zip -r module.zip ./*
 
       - name: Create Release
         id: create-release
@@ -77,34 +61,34 @@ jobs:
       - name: Release Foundry Package
         run: |
           curl -X POST "https://api.foundryvtt.com/_api/packages/release_version" \
-          -H "Content-Type: application/json" \
-          -H "Authorization: ${{ secrets.FOUNDRY_API_TOKEN }}" \
-          -d '{
-            "id": "gambitsTemplatePreviewer",
-            "release": {
-              "version": "${{ steps.get-version.outputs.version }}",
-              "manifest": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.json",
-              "download": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.zip",
-              "notes": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}",
-              "compatibility": {
-                "minimum": "12.328",
-                "verified": "12",
-                "maximum": "12"
+            -H "Content-Type: application/json" \
+            -H "Authorization: ${{ secrets.FOUNDRY_API_TOKEN }}" \
+            -d '{
+              "id": "gambitsTemplatePreviewer",
+              "release": {
+                "version": "'"${{ steps.get-version.outputs.version }}"'",
+                "manifest": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.json",
+                "download": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.zip",
+                "notes": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}",
+                "compatibility": {
+                  "minimum": "12.328",
+                  "verified": "12",
+                  "maximum": "12"
+                }
               }
-            }
-          }'
+            }'
 
       - name: Post to GTP Discord
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_GTP_WEBHOOK }}
         run: |
           curl -H "Content-Type: application/json" \
-                -d '{
-                "embeds": [{
-                  "title": "Gambit'"'"'s Template Previewer Release: ${{ steps.get-version.outputs.version }}",
-                  "description": "**To support my continued work on this module!**\n[Patreon ❤️](https://www.patreon.com/GambitsLounge) | [Ko-fi ❤️](https://ko-fi.com/gambit07)\n\n${{ steps.format-release-notes-discord.outputs.release-notes-discord }}\n\nCheck it out through the Foundry package manager or the link below:\n<https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}>",
-                  "image": {
-                    "url": "https://avatars.githubusercontent.com/u/4236874?s=400&u=05d3718580ef87ea13467131a0c1fcaf4956630d&v=4"
-                  }
-                }]
-                }' $DISCORD_WEBHOOK
+               -d '{
+                 "embeds": [{
+                   "title": "Gambit'\''s Template Previewer Release: ${{ steps.get-version.outputs.version }}",
+                   "description": "**To support my continued work on this module!**\n[Patreon ❤️](https://www.patreon.com/GambitsLounge) | [Ko-fi ❤️](https://ko-fi.com/gambit07)\n\n${{ steps.format-release-notes-discord.outputs.release-notes-discord }}\n\nCheck it out through the Foundry package manager or the link below:\n<https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}>",
+                   "image": {
+                     "url": "https://avatars.githubusercontent.com/u/4236874?s=400&u=05d3718580ef87ea13467131a0c1fcaf4956630d&v=4"
+                   }
+                 }]
+               }' $DISCORD_WEBHOOK
