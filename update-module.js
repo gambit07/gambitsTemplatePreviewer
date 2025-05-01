@@ -29,7 +29,7 @@ console.log(`✅ module.json bumped to v${version}`);
 
 // ─── 3) Prepend to CHANGELOG.md ──────────────────────────────────────────
 
-const NOTES_FILE     = path.resolve(__dirname, 'release-notes.txt');
+const NOTES_FILE     = path.resolve(__dirname, 'release_notes.txt');
 const CHANGELOG_FILE = path.resolve(__dirname, 'CHANGELOG.md');
 
 if (fs.existsSync(NOTES_FILE)) {
