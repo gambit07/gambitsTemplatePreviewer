@@ -1,4 +1,5 @@
 import * as utils from './utils.js';
+import { MODULE_ID } from "./module.js";
 
 function setControlsDisabled(dialog, disabled) {
     dialog.querySelector('#token-select')?.setAttribute('disabled', disabled);
@@ -51,7 +52,7 @@ function generateItemOptions(items, isV4) {
         const { templates } = utils.getTemplateData(item, isV4);
 
         return templates.map(template => {
-        return `<option value="${item.id}" data-type="${template.targetType}" data-size="${template.targetSize}" data-width="${template.targetWidth}"> ${template.label} (${template.targetSize} ${gridUnits} ${template.targetType}${template.targetWidth ? `, ${template.targetWidth} ${gridUnits} width` : ""})</option>`;
+        return `<option value="${item.id}" data-type="${template.targetType}" data-size="${template.targetSize}" data-width="${template.targetWidth}"> ${template.label} (${template.targetSize} ${gridUnits} ${template.targetType === "emanationNoTemplate" ? "emanation" : template.targetType}${template.targetWidth ? `, ${template.targetWidth} ${gridUnits} width` : ""})</option>`;
         }).join("");
     }).join("");
 }
@@ -114,7 +115,7 @@ export async function generateTemplate() {
         itemOptions = generateItemOptions(items, isV4);
     }
 
-    const userFlags = game.user.getFlag("gambitsTemplatePreviewer", "dialog-position-generateTemplate");
+    const userFlags = game.user.getFlag(MODULE_ID, "dialog-position-generateTemplate");
 
     let previewInProgress = false;
     const sliderInputs = generateSliderInputs(gridUnits, previewInProgress);
@@ -291,7 +292,7 @@ export async function generateTemplate() {
 		},
         close: (event) => {
             const { top, left } = event.target.position;
-            game.user.setFlag("gambitsTemplatePreviewer", "dialog-position-generateTemplate", { top, left });
+            game.user.setFlag(MODULE_ID, "dialog-position-generateTemplate", { top, left });
             game.gambitsTemplatePreviewer.dialogOpen = false;
         },
         rejectClose: false
@@ -366,9 +367,10 @@ async function previewTemplate(templateType, targetSize, targetWidth, walledTemp
           const firstTemplate = createdTemplates[0];
           await firstTemplate.delete();
         }
-        game.user.targets.forEach(token => token.setTarget(false, { user: game.user }));
       } catch (error) {
         console.error('Error during template preview (5e):', error);
       }
+
+      game.user.targets.forEach(token => token.setTarget(false, { user: game.user }));
     }
   }

@@ -10,16 +10,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      release-notes: ${{ steps.set-release-notes.outputs.release-notes }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       - name: Set Release Notes for Github
         id: set-release-notes-github
         run: |
-          echo "- Activities: Went through and re-worked activities for 5e. The menu will now pickup each activity for an item if each has a valid template. The menu will look for activity naming, if a default name (Use, Save, etc) or the same name as the item, the menu will use the default item name. If activity name is different, the activity will be appended to the item name, ie Item.name: Activity.name (ex. Call Lightning: Storm Bolt)" >> release_notes.txt
-          echo "- Fixed a bug with some wall type templates with a 1 foot width. The previewer will now display those correctly. Generic AOE Size and Generic AOE Width buttons will now maintain the last manually set value while the previewer dialog is open instead of updating to the last selected template size." >> release_notes.txt
+          echo "- Added CHANGELOG.md file and updated it to contain previous release notes. The new versions changelog will now display in a dialog on first load, which hopefully you are seeing now!" >> release_notes.txt
+          echo "- Updated module.json to enable 5e V5 compatibility" >> release_notes.txt
+          echo "- 5e: Remove targeting on tokens on right click, previously only worked on a left click" >> release_notes.txt
           echo "release-notes-github<<EOF" >> $GITHUB_ENV
           cat release_notes.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
@@ -28,7 +29,7 @@ jobs:
         id: format-release-notes-discord
         run: |
           DISCORD_NOTES=$(awk '{printf "%s\\n", $0}' release_notes.txt | sed 's/\\n$//')
-          echo "::set-output name=release-notes-discord::$DISCORD_NOTES"
+          echo "release-notes-discord=$DISCORD_NOTES" >> $GITHUB_OUTPUT
 
       - name: Get Version from Commit Message
         id: get-version
@@ -39,6 +40,22 @@ jobs:
 
       - name: Update module.json with Version
         run: node update-module.js ${{ steps.get-version.outputs.version }}
+
+      - name: Append to CHANGELOG.md
+        run: |
+          # use Detroit time
+          DATE=$(TZ=America/Detroit date +'%Y-%m-%d')
+          echo "" >> CHANGELOG.md
+          echo "## [v${{ steps.get-version.outputs.version }}] - $DATE" >> CHANGELOG.md
+          cat release_notes.txt >> CHANGELOG.md
+
+      - name: Commit version & CHANGELOG updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add module.json CHANGELOG.md
+          git commit -m "chore: release v${{ steps.get-version.outputs.version }}" || echo "No changes to commit"
+          git push
 
       - name: Zip Files
         working-directory: ./
@@ -63,16 +80,16 @@ jobs:
           -H "Content-Type: application/json" \
           -H "Authorization: ${{ secrets.FOUNDRY_API_TOKEN }}" \
           -d '{
-            "id": "'"gambitsTemplatePreviewer"'",
+            "id": "gambitsTemplatePreviewer",
             "release": {
-              "version": "'"${{ steps.get-version.outputs.version }}"'",
-              "manifest": "'"https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.json"'",
-              "download": "'"https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.zip"'",
-              "notes": "'"https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}"'",
+              "version": "${{ steps.get-version.outputs.version }}",
+              "manifest": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.json",
+              "download": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.zip",
+              "notes": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}",
               "compatibility": {
-                "minimum": "'"12.328"'",
-                "verified": "'"12"'",
-                "maximum": "'"12"'"
+                "minimum": "12.328",
+                "verified": "12",
+                "maximum": "12"
               }
             }
           }'

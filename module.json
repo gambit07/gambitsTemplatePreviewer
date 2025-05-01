@@ -11,7 +11,7 @@
   "version": "",
   "compatibility": {
     "minimum": 12.328,
-    "verified": 13.339,
+    "verified": 13.341,
     "maximum": 13.999
   },
   "esmodules": [
@@ -25,8 +25,8 @@
         "type": "system",
         "compatibility": {
           "minimum": "3.2.1",
-          "verified": "4.3.8",
-          "maximum": "4.9.9"
+          "verified": "5.0.1",
+          "maximum": "5.9.99"
         }
       },
       {
