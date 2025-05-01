@@ -96,6 +96,12 @@
 - 5e: Remove targeting on tokens on right click, previously only worked on a left click.
 
 
+## [v2.0.4] - 2025-05-01
+- Added CHANGELOG.md file and updated it to contain previous release notes. The new version’s changelog will now display in a dialog on first load!
+- Updated module.json to enable 5e V5 compatibility
+- 5e: Remove targeting on tokens on right click, previously only worked on a left click.
+
+
 ## [2.0.0] - 2025-04-12
 
 - Activities: Went through and re-worked activities for 5e. The menu will now pickup each activity for an item if each has a valid template. The menu will look for activity naming, if a default name (Use, Save, etc) or the same name as the item, the menu will use the default item name. If activity name is different, the activity will be appended to the item name, ie Item.name: Activity.name (ex. Call Lightning: Storm Bolt)
