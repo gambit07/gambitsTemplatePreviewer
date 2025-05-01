@@ -266,57 +266,47 @@ export async function displayNewVersionDialog() {
       minimizable: true
     },
     content: `
-      <style>
-      .gtp-changelog-container {
-        display: flex;
-        width: 800px;
-        font-family: var(--font-base);
-        align-items: center;
-      }
-      .gtp-changelog-notes {
-        flex: 3;               /* 75% */
-        padding: 1rem;
-        overflow-y: auto;
-        border-right: 1px solid #777;
-        box-sizing: border-box;
-      }
-      .gtp-changelog-notes ul {
-        padding-left: 1.2rem;
-        margin: 0.5em 0;
-      }
-      .gtp-changelog-notes ul ul {
-        padding-left: 1rem;
-        margin-top: 0.2em;
-      }
-      .gtp-changelog-notes li {
-        margin-bottom: 0.4em;
-        text-align: left;
-      }
-      .gtp-changelog-notes p {
-        margin: 0.5em 0;
-        text-align: left;
-      }
-      .gtp-changelog-image {
-        flex: 1;               /* 25% */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        box-sizing: border-box;
-      }
-      .gtp-changelog-image img {
-        max-width: 100%;
-        max-height: 100%;
-        border-radius: 0.5rem;
-        box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      }
-      </style>
-      <div class="gtp-changelog-container">
-        <div class="gtp-changelog-notes">
+      <div style="
+        display: flex !important;
+        width: 800px !important;
+        max-width: 800px !important;
+        font-family: var(--font-base) !important;
+        align-items: center !important;
+      ">
+        <!-- Notes panel (75%) -->
+        <div style="
+          flex: 3 0 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 1rem !important;
+          overflow-y: auto !important;
+          border-right: 1px solid #777 !important;
+          box-sizing: border-box !important;
+        ">
           ${contentHtml}
         </div>
-        <div class="gtp-changelog-image">
-          <img src="${ICON_PATH}" alt="Gambit Icon">
+
+        <!-- Image panel (25%) -->
+        <div style="
+          flex: 1 0 0 !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          padding: 1rem !important;
+          box-sizing: border-box !important;
+          overflow: hidden !important;
+        ">
+          <img src="${ICON_PATH}" alt="Previewer Icon" style="
+            max-width: 100% !important;
+            max-height: 150px !important;
+            width: auto !important;
+            height: auto !important;
+            object-fit: contain !important;
+            border-radius: 4px !important;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3) !important;
+          ">
         </div>
       </div>
     `,
