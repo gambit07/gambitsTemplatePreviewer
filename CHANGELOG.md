@@ -72,3 +72,8 @@ Initial release! This tool was initially in my other module Gambits Premades, bu
 - Added CHANGELOG.md file and updated it to contain previous release notes. The new versions changelog will now display in a dialog on first load, which hopefully you are seeing now!
 - Updated module.json to enable 5e V5 compatibility
 - 5e: Remove targeting on tokens on right click, previously only worked on a left click
+
+## [v2.0.2] - 2025-05-01
+- Added CHANGELOG.md file and updated it to contain previous release notes. The new versions changelog will now display in a dialog on first load, which hopefully you are seeing now!
+- Updated module.json to enable 5e V5 compatibility
+- 5e: Remove targeting on tokens on right click, previously only worked on a left click.
