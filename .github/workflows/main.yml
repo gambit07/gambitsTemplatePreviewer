@@ -10,66 +10,30 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout & enable pushing
         uses: actions/checkout@v4
         with:
           persist-credentials: true
 
-      - name: Set Release Notes for Github
-        id: set-release-notes-github
-        run: |
-          echo "- Added CHANGELOG.md file and updated it to contain previous release notes. The new version’s changelog will now display in a dialog on first load!" >> release_notes.txt
-          echo "- Updated module.json to enable 5e V5 compatibility" >> release_notes.txt
-          echo "- 5e: Remove targeting on tokens on right click, previously only worked on a left click." >> release_notes.txt
-          echo "release-notes-github<<EOF" >> $GITHUB_ENV
-          cat release_notes.txt >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Format Release Notes for Discord
-        id: format-release-notes-discord
-        run: |
-          DISCORD_NOTES=$(awk '{printf "%s\\n", $0}' release_notes.txt | sed 's/\\n$//')
-          echo "release-notes-discord=$DISCORD_NOTES" >> $GITHUB_OUTPUT
-
-      - name: Get Version from Commit Message
-        id: get-version
-        run: |
-          version=$(git log -1 --pretty=%B \
-            | grep -o -E '[v]?[0-9]+\.[0-9]+\.[0-9]+' \
-            | sed 's/^v//')
-          echo "version=$version" >> $GITHUB_OUTPUT
-          echo "Extracted version: $version"
-
       - name: Zip Files
         run: zip -r module.zip ./*
 
-      - name: Create Release
-        id: create-release
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          name: Release ${{ steps.get-version.outputs.version }}
-          draft: false
-          prerelease: false
-          body: ${{ env.release-notes-github }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: './module.zip, ./module.json'
-          tag: ${{ steps.get-version.outputs.version }}
-
       - name: Release Foundry Package
+        env:
+          FOUNDRY_API_TOKEN: ${{ secrets.FOUNDRY_API_TOKEN }}
         run: |
+          VERSION=$(node -p "require('./module.json').version")
           curl -X POST "https://api.foundryvtt.com/_api/packages/release_version" \
             -H "Content-Type: application/json" \
-            -H "Authorization: ${{ secrets.FOUNDRY_API_TOKEN }}" \
+            -H "Authorization: $FOUNDRY_API_TOKEN" \
             -d '{
               "id": "gambitsTemplatePreviewer",
               "release": {
-                "version": "'"${{ steps.get-version.outputs.version }}"'",
-                "manifest": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.json",
-                "download": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/${{ steps.get-version.outputs.version }}/module.zip",
-                "notes": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}",
+                "version": "'"${VERSION}"'",
+                "manifest": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/'"${VERSION}"'/module.json",
+                "download": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/'"${VERSION}"'/module.zip",
+                "notes": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/'"${VERSION}"'",
                 "compatibility": {
                   "minimum": "12.328",
                   "verified": "12",
@@ -82,11 +46,13 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_GTP_WEBHOOK }}
         run: |
+          VERSION=$(node -p "require('./module.json').version")
+          RELEASE_NOTES=$(sed ':a;N;$!ba;s/\n/\\n/g' release_notes.txt)
           curl -H "Content-Type: application/json" \
                -d '{
                  "embeds": [{
-                   "title": "Gambit'\''s Template Previewer Release: ${{ steps.get-version.outputs.version }}",
-                   "description": "**To support my continued work on this module!**\n[Patreon ❤️](https://www.patreon.com/GambitsLounge) | [Ko-fi ❤️](https://ko-fi.com/gambit07)\n\n${{ steps.format-release-notes-discord.outputs.release-notes-discord }}\n\nCheck it out through the Foundry package manager or the link below:\n<https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/${{ steps.get-version.outputs.version }}>",
+                   "title": "Gambit'\''s Template Previewer Release: '$VERSION'",
+                   "description": "**To support my continued work on this module!**\n[Patreon ❤️](https://www.patreon.com/GambitsLounge) | [Ko-fi ❤️](https://ko-fi.com/gambit07)\n\n'"$RELEASE_NOTES"'\n\nCheck it out through the Foundry package manager or the link below:\n<https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/'"$VERSION"'>",
                    "image": {
                      "url": "https://avatars.githubusercontent.com/u/4236874?s=400&u=05d3718580ef87ea13467131a0c1fcaf4956630d&v=4"
                    }

@@ -327,7 +327,7 @@ export async function displayNewVersionDialog() {
     rejectClose: false
   });
 
-  await game.settings.set(MODULE_ID, 'lastViewedVersion', version);
+  await game.settings.set(MODULE_ID, 'lastViewedVersion', game.modules.get(MODULE_ID).version);
 }
 
 function extractChangelogSection(md, version) {

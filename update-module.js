@@ -75,14 +75,11 @@ try {
   execSync('git config user.name "github-actions[bot]"');
   execSync('git config user.email "41898282+github-actions[bot]@users.noreply.github.com"');
   execSync(`git add ${MODULE_JSON} ${CHANGELOG_FILE}`, { stdio: 'inherit' });
-  execSync(`git commit -m "chore: release v${version}"`, { stdio: 'inherit' });
+  execSync(`git commit -m "${version}"`, { stdio: 'inherit' });
   console.log('💾  Committed module.json and CHANGELOG.md');
 } catch {
   console.log('ℹ️  Nothing to commit');
 }
-
-execSync('git push origin main', { stdio: 'inherit' });
-console.log('🚀  Pushed to origin/main');
 
 // ─── 5) Create GitHub Release ───────────────────────────────────────────
 
