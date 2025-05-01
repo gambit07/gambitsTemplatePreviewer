@@ -1,5 +1,5 @@
 import { generateTemplate } from './templatePreview.js';
-import { displayNewVersion } from './utils.js';
+import { displayNewVersionDialog } from './utils.js';
 export const MODULE_ID = "gambitsTemplatePreviewer";
 
 Hooks.once('init', async function() {
@@ -47,5 +47,5 @@ Hooks.once('init', async function() {
 });
 
 Hooks.once('ready', async function() {
-	await displayNewVersion();
+	await displayNewVersionDialog();
 });
