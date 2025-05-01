@@ -195,6 +195,7 @@ export function getWalledTemplateFlags(item, type) {
 }
 
 export async function displayNewVersionDialog() {
+  if(game.settings.get(MODULE_ID, 'lastViewedVersion') === game.modules.get(MODULE_ID).version) return;
   const ICON_PATH = `modules/${MODULE_ID}/assets/gambit.webp`;
 
   let notesMd;
