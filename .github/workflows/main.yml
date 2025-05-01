@@ -20,7 +20,7 @@ jobs:
         run: |
           echo "- Added CHANGELOG.md file and updated it to contain previous release notes. The new versions changelog will now display in a dialog on first load, which hopefully you are seeing now!" >> release_notes.txt
           echo "- Updated module.json to enable 5e V5 compatibility" >> release_notes.txt
-          echo "- 5e: Remove targeting on tokens on right click, previously only worked on a left click" >> release_notes.txt
+          echo "- 5e: Remove targeting on tokens on right click, previously only worked on a left click." >> release_notes.txt
           echo "release-notes-github<<EOF" >> $GITHUB_ENV
           cat release_notes.txt >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
