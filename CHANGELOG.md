@@ -1,5 +1,9 @@
 # Changelog
 
+## [v2.0.10] - 2025-05-02
+- Added English localization into the module to allow translation, if anyone would like to PR translations feel free!
+- Cleaned up some errant system files left in module.zip after the last update
+
 ## [v2.0.9] - 2025-05-01
 - Added CHANGELOG.md file and updated it to contain previous release notes. The new version’s changelog will now display in a dialog on first load!
 - Updated module.json to enable 5e V5 compatibility
