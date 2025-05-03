@@ -39,6 +39,13 @@
       }
     ]
   },
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "languages/en.json"
+    }
+  ],
   "url": "https://github.com/gambit07/gambitsTemplatePreviewer",
   "manifest": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/latest/download/module.json",
   "download": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/2.0.9/module.zip"

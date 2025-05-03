@@ -52,7 +52,7 @@ function generateItemOptions(items, isV4) {
         const { templates } = utils.getTemplateData(item, isV4);
 
         return templates.map(template => {
-        return `<option value="${item.id}" data-type="${template.targetType}" data-size="${template.targetSize}" data-width="${template.targetWidth}"> ${template.label} (${template.targetSize} ${gridUnits} ${template.targetType === "emanationNoTemplate" ? "emanation" : template.targetType}${template.targetWidth ? `, ${template.targetWidth} ${gridUnits} width` : ""})</option>`;
+        return `<option value="${item.id}" data-type="${template.targetType}" data-size="${template.targetSize}" data-width="${template.targetWidth}"> ${template.label} (${template.targetSize} ${gridUnits} ${template.targetType === "emanationNoTemplate" ? "emanation" : template.targetType}${template.targetWidth ? `, ${template.targetWidth} ${gridUnits} ${game.i18n.format("gambitsTemplatePreviewer.dialog.options.width")}` : ""})</option>`;
         }).join("");
     }).join("");
 }
@@ -79,14 +79,14 @@ function generateSliderInputs(gridUnits, previewInProgress) {
 
     const sliderTemplate = `
         <div class="form-group">
-            <label for="template-size">Generic AoE Size (${gridUnits}):</label>
+            <label for="template-size">${game.i18n.format("gambitsTemplatePreviewer.dialog.label.genericAoeSize")} (${gridUnits}):</label>
             <div style="display: flex; align-items: center;">
                 <input type="range" id="template-size" name="template-size" value="${config.value}" min="${config.min}" max="${config.max}" step="${config.step}" style="flex: 1;" ${previewInProgress ? 'disabled' : ''}>
                 <input type="number" id="template-size-display" name="template-size-display" value="${config.value}" min="${config.min}" max="${config.max}" step="${config.step}" style="width: 50px; margin-left: 10px;" ${previewInProgress ? 'disabled' : ''}>
             </div>
         </div>
         <div class="form-group" id="width-group" style="margin-top: 5px;">
-            <label for="template-width">Generic AoE Width (${gridUnits}):</label>
+            <label for="template-width">${game.i18n.format("gambitsTemplatePreviewer.dialog.label.genericAoeWidth")} (${gridUnits}):</label>
             <div style="display: flex; align-items: center;">
                 <input type="range" id="template-width" name="template-width" value="${config.value}" min="${config.min}" max="${config.max}" step="${config.step}" style="flex: 1;" ${previewInProgress ? 'disabled' : ''}>
                 <input type="number" id="template-width-display" name="template-width-display" value="${config.value}" min="${config.min}" max="${config.max}" step="${config.step}" style="width: 50px; margin-left: 10px;" ${previewInProgress ? 'disabled' : ''}>
@@ -122,15 +122,15 @@ export async function generateTemplate() {
 
     await foundry.applications.api.DialogV2.wait({
         window: {
-            title: `Template Preview`,
+            title: game.i18n.format("gambitsTemplatePreviewer.dialog.window.templatePreview"),
             minimizable: true
         },
         content: `
             <form>
-            <div style="width: 450px;">
+            <div style="width: 500px;">
             ${pickedTokens.length > 1 ? `
                 <div class="form-group">
-                <label for="token-select">Select Token:</label>
+                <label for="token-select">${game.i18n.format("gambitsTemplatePreviewer.dialog.label.selectToken")}:</label>
                 <select id="token-select" name="token-select">
                     ${tokenOptions}
                 </select>
@@ -139,16 +139,16 @@ export async function generateTemplate() {
             ` : ''}
             ${items.length > 0 ? `
                 <div class="form-group">
-                <label for="item-select">Select Item AoE:</label>
+                <label for="item-select">${game.i18n.format("gambitsTemplatePreviewer.dialog.label.selectItemAoe")}:</label>
                 <select id="item-select" name="item-select" ${previewInProgress ? 'disabled' : ''}>
-                    <option value="" selected>-- Select an Item --</option>
+                    <option value="" selected>-- ${game.i18n.format("gambitsTemplatePreviewer.dialog.options.selectAnItem")} --</option>
                     ${itemOptions}
                 </select>
                 </div>
                 <hr/>
             ` : ''}
                 <div class="form-group">
-                <label>Select Generic AoE:</label>
+                <label>${game.i18n.format("gambitsTemplatePreviewer.dialog.label.selectGenericAoe")}:</label>
                 <div class="template-buttons" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
                     <button type="button" id="circle-template" class="template-btn" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-circle"></i> Circle
@@ -171,7 +171,7 @@ export async function generateTemplate() {
         `,
         buttons: [{
             action: "close",
-            label: "Close",
+            label: game.i18n.format("gambitsTemplatePreviewer.dialog.button.close"),
             icon: "fas fa-times",
             default: true
         }],
@@ -226,7 +226,7 @@ export async function generateTemplate() {
 
 						const itemSelect = dialog.querySelector('#item-select');
 						if (itemSelect) {
-							itemSelect.innerHTML = `<option value="" selected>-- Select an Item --</option>${itemOptions}`;
+							itemSelect.innerHTML = `<option value="" selected>-- ${game.i18n.format("gambitsTemplatePreviewer.dialog.options.selectAnItem")} --</option>${itemOptions}`;
 						}
 					}
 				});
@@ -240,52 +240,52 @@ export async function generateTemplate() {
 					const selectedItemId = this.value;
                     const selectedItem = items.find(item => item.id === selectedItemId);
                     if (selectedItem) {
-                    const selectedOption = this.options[this.selectedIndex];
-                    const targetType = selectedOption.getAttribute("data-type");
-                    const targetSize = parseFloat(selectedOption.getAttribute("data-size"));
-                    let targetWidth = parseFloat(selectedOption.getAttribute("data-width"));
+                        const selectedOption = this.options[this.selectedIndex];
+                        const targetType = selectedOption.getAttribute("data-type");
+                        const targetSize = parseFloat(selectedOption.getAttribute("data-size"));
+                        let targetWidth = parseFloat(selectedOption.getAttribute("data-width"));
 
-                    const distConfig = ["meters", "m", "mt", "metri"].includes(gridUnits.toLowerCase())
-                    ? "meters"
-                    : "feet";
-                    if (isNaN(targetWidth)) distConfig === "feet" ? targetWidth = 5 : targetWidth === 1.5;
+                        const distConfig = ["meters", "m", "mt", "metri"].includes(gridUnits.toLowerCase())
+                        ? "meters"
+                        : "feet";
+                        if (isNaN(targetWidth)) distConfig === "feet" ? targetWidth = 5 : targetWidth === 1.5;
 
-                    let previewTemplateType;
-                    switch (targetType) {
-                        case "sphere":
-                        case "radius":
-                        case "burst":
-                        case "emanation":
-                        case "cylinder":
-                        case "circle":
-                        case "emanationNoTemplate":
-                        previewTemplateType = 'circle';
-                        break;
-                        case "cube":
-                        case "square":
-                        previewTemplateType = 'rect';
-                        break;
-                        case "cone":
-                        previewTemplateType = 'cone';
-                        break;
-                        case "line":
-                        case "wall":
-                        previewTemplateType = 'ray';
-                        break;
-                    }
+                        let previewTemplateType;
+                        switch (targetType) {
+                            case "sphere":
+                            case "radius":
+                            case "burst":
+                            case "emanation":
+                            case "cylinder":
+                            case "circle":
+                            case "emanationNoTemplate":
+                            previewTemplateType = 'circle';
+                            break;
+                            case "cube":
+                            case "square":
+                            previewTemplateType = 'rect';
+                            break;
+                            case "cone":
+                            previewTemplateType = 'cone';
+                            break;
+                            case "line":
+                            case "wall":
+                            previewTemplateType = 'ray';
+                            break;
+                        }
 
-                    if (previewTemplateType) {
-                        previewInProgress = true;
-                        const walledTemplateFlags = utils.getWalledTemplateFlags(selectedItem, previewTemplateType);
-                        setControlsDisabled(dialog, true);
+                        if (previewTemplateType) {
+                            previewInProgress = true;
+                            const walledTemplateFlags = utils.getWalledTemplateFlags(selectedItem, previewTemplateType);
+                            setControlsDisabled(dialog, true);
 
-                        await dialogInstance.minimize();
-                        await previewTemplate(previewTemplateType, targetSize, targetWidth, walledTemplateFlags);
-                        await dialogInstance.maximize();
+                            await dialogInstance.minimize();
+                            await previewTemplate(previewTemplateType, targetSize, targetWidth, walledTemplateFlags);
+                            await dialogInstance.maximize();
 
-                        previewInProgress = false;
-                        setControlsDisabled(dialog, false);
-                    }
+                            previewInProgress = false;
+                            setControlsDisabled(dialog, false);
+                        }
                     }
 				});
 			}
@@ -331,7 +331,7 @@ async function previewTemplate(templateType, targetSize, targetWidth, walledTemp
             try {
               await canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", [document.id]);
             } catch (err) {
-              console.error("PF2e: Error deleting finalized template", err);
+              console.error(game.i18n.format("gambitsTemplatePreviewer.error.pf2eDeleteError"), err);
             }
             cleanup();
             resolve();
@@ -355,7 +355,7 @@ async function previewTemplate(templateType, targetSize, targetWidth, walledTemp
         
         await deletionPromise;
       } catch (error) {
-        console.error("PF2e: Error handling preview", error);
+        console.error(game.i18n.format("gambitsTemplatePreviewer.error.pf2ePreviewError"), error);
       }
     } else {
       const templateDoc = new CONFIG.MeasuredTemplate.documentClass(templateData, { parent: canvas.scene });
@@ -368,7 +368,7 @@ async function previewTemplate(templateType, targetSize, targetWidth, walledTemp
           await firstTemplate.delete();
         }
       } catch (error) {
-        console.error('Error during template preview (5e):', error);
+        console.error(game.i18n.format("gambitsTemplatePreviewer.error.dnd5ePreviewError"), error);
       }
 
       game.user.targets.forEach(token => token.setTarget(false, { user: game.user }));

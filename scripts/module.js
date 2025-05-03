@@ -24,7 +24,7 @@ Hooks.once('init', async function() {
 		if (isV13) {
 			tokensControl.tools["template-preview"] = {
 				name: "template-preview",
-				title: "Template Preview Tool",
+				title: game.i18n.format("gambitsTemplatePreviewer.controls.templatePreviewer.title"),
 				icon: "fas fa-drafting-compass",
 				order: 6,
 				onChange: async () => {
@@ -35,7 +35,7 @@ Hooks.once('init', async function() {
 		} else {
 			tokensControl.tools.push({
 				name: "template-preview",
-				title: "Template Preview Tool",
+				title: game.i18n.format("gambitsTemplatePreviewer.controls.templatePreviewer.title"),
 				icon: "fas fa-drafting-compass",
 				onClick: async () => {
 					await generateTemplate();
