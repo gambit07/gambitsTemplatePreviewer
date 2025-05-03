@@ -1,0 +1,39 @@
+{
+    "I18N.LANGUAGE": "Português (Brasil)",
+    "gambitsTemplatePreviewer": {
+        "controls": {
+            "templatePreviewer": {
+                "title": "Template Previewer"
+            }
+        },
+        "dialog": {
+            "options": {
+                "width": "Procurar ícones...",
+                "selectAnItem": "Selecione um Item"
+            },
+            "label": {
+                "genericAoeSize": "Tamanho Genérico de AdE",
+                "genericAoeWidth": "Largura Genérica de AdE",
+                "selectToken": "Selecionar Token",
+                "selectItemAoe": "Selecionar Item com AdE",
+                "selectGenericAoe": "Selecionar AdE Genérica"
+            },
+            "window": {
+                "templatePreview": "Template Preview"
+            },
+            "button": {
+                "select": "Selecionar",
+                "cancel": "Cancelar",
+                "save": "Salvar",
+                "close": "Fechar",
+                "edit": "Editar",
+                "delete": "Excluir"
+            }
+        },
+        "error": {
+            "pf2eDeleteError": "PF2e: Erro ao excluir modelo finalizado",
+            "pf2ePreviewError": "PF2e: Erro ao revolver a visualização",
+            "dnd5ePreviewError": "DND5e: Erro durante a visualização do modelo"
+        }
+    }
+}
