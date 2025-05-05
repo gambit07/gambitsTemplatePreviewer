@@ -1,5 +1,8 @@
 # Changelog
 
+## [v2.0.11] - 2025-05-05
+- Added in pt-br translations (and a small en.json mistake) - Thanks Kharmans!
+
 ## [v2.0.10] - 2025-05-02
 - Added English localization into the module to allow translation, if anyone would like to PR translations feel free!
 - Cleaned up some errant system files left in module.zip after the last update
