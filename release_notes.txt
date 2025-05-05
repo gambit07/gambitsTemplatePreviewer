@@ -1,2 +1,1 @@
-- Added English localization into the module to allow translation, if anyone would like to PR translations feel free!
-- Cleaned up some errant system files left in module.zip after the last update
+- Added in pt-br translations (and a small en.json mistake) - Thanks Kharmans!

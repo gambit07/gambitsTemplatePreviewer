@@ -66,7 +66,7 @@ try {
   execSync('git config user.name "github-actions[bot]"');
   execSync('git config user.email "41898282+github-actions[bot]@users.noreply.github.com"');
   execSync(`git add ${MODULE_JSON} ${CHANGELOG_FILE}`, { stdio: 'inherit' });
-  execSync(`git commit -m "${version}`, { stdio: 'inherit' });
+  execSync(`git commit -m "${version}"`, { stdio: 'inherit' });
   console.log('💾  Committed module.json and CHANGELOG.md');
 } catch {
   console.log('ℹ️  Nothing to commit');
