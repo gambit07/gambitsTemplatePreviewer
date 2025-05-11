@@ -1,6 +1,8 @@
-# gambitsTemplatePreviewer
-<p><b>To support my continued work on this module! Join my Patreon at https://www.patreon.com/GambitsLounge or donate on Kofi at https://ko-fi.com/gambit07</b></p>
-<p><b>Join my Discord! If you have any questions, feature requests, or just generally want to chat feel free to join Gambit's Lounge: https://discord.gg/YNquuTzcJB</b></p>
-<p>Have your players ever wished they could preview their templates off their turn? If so, this tool may be for you! This module adds a tool to the Token controls menu for previewing template placements. It supports previewing a template placement for any template-targeting items you own, or previewing generic templates with configurable size.</p>
-<p>&nbsp;</p>
+<h1 style="text-align: center;">Gambit's Template Previewer</h1>
+<p style="text-align: center;"><i>Gambit&rsquo;s Template Previewer brings pinpoint precision to your Foundry VTT sessions by letting you see spell and item templates before your turn. Integrated directly into the Token Controls menu, nail your placements on the first try and keep your game flowing without wasting time!</i></p>
+<p style="text-align: center;"><img src="https://img.shields.io/github/v/release/gambit07/gambitsTemplatePreviewer?style=for-the-badge" alt="GitHub release" /> <img src="https://img.shields.io/github/downloads/gambit07/gambitsTemplatePreviewer/total?style=for-the-badge" alt="GitHub all releases" /> <a href="https://discord.gg/n5ypzSRjn4" target="_blank" rel="nofollow noopener"><img src="https://dcbadge.limes.pink/api/server/BA7SQKqMpa" alt="Discord" /></a></p>
+<h2 style="text-align: center;">Supporting The Module</h2>
+<p style="text-align: center;"><a href="https://ko-fi.com/gambit07" target="_blank" rel="nofollow noopener"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="ko-fi" /></a> <a href="https://www.patreon.com/GambitsLounge" target="_blank" rel="nofollow noopener"> <img src="https://img.shields.io/badge/Patreon-Gambits Lounge-F96854?style=for-the-badge&amp;logo=patreon" alt="Patreon Gambits Lounge" /> </a></p>
+<hr />
+<p>Have your players ever wished they could preview their templates off their turn? If so, this tool may be for you! This module adds a tool to the Token controls menu for previewing template placements. It supports previewing a template placement for any template-targeting items you own, or previewing generic templates with configurable sizes.</p>
 <p>https://github.com/user-attachments/assets/653088a1-0232-4386-8c4a-aa9c8685eaf9</p>
