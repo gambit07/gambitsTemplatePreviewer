@@ -1,5 +1,9 @@
 # Changelog
 
+## [v2.0.12] - 2025-06-24
+- Updated module.json to 13.345 verified
+- Couple small tweaks
+
 ## [v2.0.11] - 2025-05-05
 - Added in pt-br translations (and a small en.json mistake) - Thanks Kharmans!
 
