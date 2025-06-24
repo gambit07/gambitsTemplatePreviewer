@@ -12,8 +12,8 @@
                 "selectAnItem": "Selecione um Item"
             },
             "label": {
-                "genericAoeSize": "Tamanho Genérico de AdE",
-                "genericAoeWidth": "Largura Genérica de AdE",
+                "genericAoeSize": "Tamanho da AdE",
+                "genericAoeWidth": "Largura da AdE",
                 "selectToken": "Selecionar Token",
                 "selectItemAoe": "Selecionar Item com AdE",
                 "selectGenericAoe": "Selecionar AdE Genérica"
