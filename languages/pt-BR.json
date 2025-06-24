@@ -16,7 +16,11 @@
                 "genericAoeWidth": "Largura da AdE",
                 "selectToken": "Selecionar Token",
                 "selectItemAoe": "Selecionar Item com AdE",
-                "selectGenericAoe": "Selecionar AdE Genérica"
+                "selectGenericAoe": "Selecionar AdE Genérica",
+                "circle": "Círculo",
+                "square": "Quadrado",
+                "cone": "Cone",
+                "line": "Linha"
             },
             "window": {
                 "templatePreview": "Template Preview"
