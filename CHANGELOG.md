@@ -1,5 +1,8 @@
 # Changelog
 
+## [v2.0.13] - 2025-06-24
+- Added missing localization keys. Updated pt-br translations. Thanks kharmans!
+
 ## [v2.0.12] - 2025-06-24
 - Updated module.json to 13.345 verified
 - Couple small tweaks
