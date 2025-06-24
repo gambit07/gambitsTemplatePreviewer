@@ -11,7 +11,7 @@
   "version": "2.0.11",
   "compatibility": {
     "minimum": 12.328,
-    "verified": 13.341,
+    "verified": 13.345,
     "maximum": 13.999
   },
   "esmodules": [

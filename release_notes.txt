@@ -1,1 +1,2 @@
-- Added in pt-br translations (and a small en.json mistake) - Thanks Kharmans!
+- Updated module.json to 13.345 verified
+- Couple small tweaks
