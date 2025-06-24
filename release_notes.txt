@@ -1,2 +1,1 @@
-- Updated module.json to 13.345 verified
-- Couple small tweaks
+- Added missing localization keys. Updated pt-br translations. Thanks kharmans!

@@ -151,16 +151,16 @@ export async function generateTemplate() {
                 <label>${game.i18n.format("gambitsTemplatePreviewer.dialog.label.selectGenericAoe")}:</label>
                 <div class="template-buttons" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
                     <button type="button" id="circle-template" class="template-btn" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-circle"></i> Circle
+                    <i class="fas fa-circle"></i> ${game.i18n.format("gambitsTemplatePreviewer.dialog.label.circle")}
                     </button>
                     <button type="button" id="rect-template" class="template-btn" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-square"></i> Square
+                    <i class="fas fa-square"></i> ${game.i18n.format("gambitsTemplatePreviewer.dialog.label.square")}
                     </button>
                     <button type="button" id="cone-template" class="template-btn" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-triangle"></i> Cone
+                    <i class="fa-solid fa-triangle"></i> ${game.i18n.format("gambitsTemplatePreviewer.dialog.label.cone")}
                     </button>
                     <button type="button" id="ray-template" class="template-btn" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-arrows-alt-h"></i> Line
+                    <i class="fas fa-arrows-alt-h"></i> ${game.i18n.format("gambitsTemplatePreviewer.dialog.label.line")}
                     </button>
                 </div>
                 </div>
