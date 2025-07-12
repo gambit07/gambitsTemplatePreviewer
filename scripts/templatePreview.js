@@ -135,7 +135,7 @@ export async function generateTemplate() {
                     ${tokenOptions}
                 </select>
                 </div>
-                <hr/>
+                <hr style="background: none; border: none; height: 2px; background-image: linear-gradient(to right, transparent, var(--color-border-highlight), transparent); margin: 1.5em 0;"/>
             ` : ''}
             ${items.length > 0 ? `
                 <div class="form-group">
@@ -145,7 +145,7 @@ export async function generateTemplate() {
                     ${itemOptions}
                 </select>
                 </div>
-                <hr/>
+                <hr style="background: none; border: none; height: 2px; background-image: linear-gradient(to right, transparent, var(--color-border-highlight), transparent); margin: 1.5em 0;"/>
             ` : ''}
                 <div class="form-group">
                 <label>${game.i18n.format("gambitsTemplatePreviewer.dialog.label.selectGenericAoe")}:</label>
@@ -164,7 +164,7 @@ export async function generateTemplate() {
                     </button>
                 </div>
                 </div>
-                <hr/>
+                <hr style="background: none; border: none; height: 2px; background-image: linear-gradient(to right, transparent, var(--color-border-highlight), transparent); margin: 1em 0;"/>
                 ${sliderInputs}
             </div>
             </form>
@@ -216,10 +216,12 @@ export async function generateTemplate() {
 			});
 
 			const tokenSelect = dialog.querySelector('#token-select');
+            let selectedToken = null;
+
 			if (tokenSelect) {
 				tokenSelect.addEventListener('change', function () {
 					const selectedTokenId = this.value;
-					const selectedToken = pickedTokens.find(token => token.id === selectedTokenId);
+					selectedToken = pickedTokens.find(token => token.id === selectedTokenId);
 					if (selectedToken) {
 						items = selectedToken.actor.items.filter(item => utils.hasValidTemplate(item, isV4)).sort((a, b) => a.name.localeCompare(b.name));
 						itemOptions = generateItemOptions(items, isV4);
@@ -242,13 +244,20 @@ export async function generateTemplate() {
                     if (selectedItem) {
                         const selectedOption = this.options[this.selectedIndex];
                         const targetType = selectedOption.getAttribute("data-type");
-                        const targetSize = parseFloat(selectedOption.getAttribute("data-size"));
+                        let targetSize = parseFloat(selectedOption.getAttribute("data-size"));
                         let targetWidth = parseFloat(selectedOption.getAttribute("data-width"));
 
                         const distConfig = ["meters", "m", "mt", "metri"].includes(gridUnits.toLowerCase())
                         ? "meters"
                         : "feet";
                         if (isNaN(targetWidth)) distConfig === "feet" ? targetWidth = 5 : targetWidth === 1.5;
+
+                        let chosenToken = selectedToken ?? pickedTokens[0];
+
+                        if(["emanation", "emanationNoTemplate"].includes(targetType)) {
+                            const tokenSizeOffset = Math.max(chosenToken?.document?.width, chosenToken?.document?.height) * 0.5 * canvas.scene.dimensions.distance;
+                            targetSize += tokenSizeOffset;
+                        }
 
                         let previewTemplateType;
                         switch (targetType) {

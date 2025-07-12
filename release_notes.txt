@@ -1,1 +1,1 @@
-- Added missing localization keys. Updated pt-br translations. Thanks kharmans!
+- Added additional handling for emanation type templates to account for token size offsets. Thanks kharmans!
