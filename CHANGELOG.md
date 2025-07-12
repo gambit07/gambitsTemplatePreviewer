@@ -1,5 +1,8 @@
 # Changelog
 
+## [v2.0.14] - 2025-07-12
+- Added additional handling for emanation type templates to account for token size offsets. Thanks kharmans!
+
 ## [v2.0.13] - 2025-06-24
 - Added missing localization keys. Updated pt-br translations. Thanks kharmans!
 
