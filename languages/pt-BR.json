@@ -6,6 +6,17 @@
                 "title": "Template Previewer"
             }
         },
+        "keybinds": {
+            "toggleTemplatePreviewer": {
+                "name": "Alternar Template Previewer",
+                "hint": "Pressione esta tecla para abrir/fechar o Template Previewer."
+            }
+        },
+        "settings": {
+            "disableTokenControls": {
+                "name": "Desativar Botão de Controles de Token (Necessário Recarregar)"
+            }
+        },
         "dialog": {
             "options": {
                 "width": "Procurar ícones...",
