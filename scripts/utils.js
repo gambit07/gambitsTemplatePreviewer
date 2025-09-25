@@ -175,7 +175,7 @@ export function hasValidTemplate(item, isV4) {
     if (!targetSize || !["cone", "cube", "cylinder", "line", "radius", "sphere", "square", "wall", "circle", "emanationNoTemplate"].includes(targetType)) {
       return false;
     }
-    if (item.type === "spell" && (item.system.level > 0 && item.system.preparation?.mode === "prepared" && !item.system.preparation.prepared)) {
+    if (item.type === "spell" && (item.system.level > 0 && foundry.utils.isNewerVersion(game.system.version, "5.1.0") ? (item.system.method === "spell" && !item.system.prepared) : (item.system.preparation?.mode === "prepared" && !item.system.preparation.prepared))) {
       return false;
     }
     return true;

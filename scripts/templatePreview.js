@@ -185,6 +185,8 @@ export async function generateTemplate() {
 				dialogInstance.setPosition({ top: userFlags.top, left: userFlags.left });
 			}
 
+            game.gambitsTemplatePreviewer.dialogInstance = dialogInstance;
+
             addSliderListeners(dialog);
 
 			const templateButtons = {
@@ -303,6 +305,7 @@ export async function generateTemplate() {
             const { top, left } = event.target.position;
             game.user.setFlag(MODULE_ID, "dialog-position-generateTemplate", { top, left });
             game.gambitsTemplatePreviewer.dialogOpen = false;
+            game.gambitsTemplatePreviewer.dialogInstance = null;
         },
         rejectClose: false
     });
