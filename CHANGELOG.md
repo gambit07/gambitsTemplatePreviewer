@@ -4,6 +4,10 @@
 - Added V14 and DND5e 5.3.x support! This will require further work in 5e V6 most likely, but for now is still all good
 - Added pt-br translations, thanks Kharmans!
 
+## [v2.1.2] - 2026-04-02
+- Added V14 and DND5e 5.3.x support! This will require further work in 5e V6 most likely, but for now is still all good
+- Added pt-br translations, thanks Kharmans!
+
 ## [v2.1.2] - 2026-04-01
 - Added V14 and DND5e 5.3.x support! This will require further work in 5e V6 most likely, but for now is still all good
 - Added pt-br translations, thanks Kharmans!
