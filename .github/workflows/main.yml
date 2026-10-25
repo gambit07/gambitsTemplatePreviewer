@@ -35,9 +35,9 @@ jobs:
                 "download": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/download/'"${VERSION}"'/module.zip",
                 "notes": "https://github.com/gambit07/gambitsTemplatePreviewer/releases/tag/'"${VERSION}"'",
                 "compatibility": {
-                  "minimum": "12.328",
-                  "verified": "13.345",
-                  "maximum": "13.999"
+                  "minimum": "14",
+                  "verified": "14",
+                  "maximum": "14"
                 }
               }
             }'
