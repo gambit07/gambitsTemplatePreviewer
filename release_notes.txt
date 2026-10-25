@@ -1,2 +1,2 @@
-- Added V14 and DND5e 5.3.x support! This will require further work in 5e V6 most likely, but for now is still all good
-- Added pt-br translations, thanks Kharmans!
+- Added DND5e 6.x support AND PF2e 8.x support! Both now use native region creation instead of template handling
+- Added new localization noting that regions can be rotated with the Shift key

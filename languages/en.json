@@ -19,7 +19,7 @@
         },
         "dialog": {
             "options": {
-                "width": "Search icons...",
+                "width": "width",
                 "selectAnItem": "Select an Item"
             },
             "label": {
@@ -43,12 +43,16 @@
                 "close": "Close",
                 "edit": "Edit",
                 "delete": "Delete"
+            },
+            "tooltip": {
+                "rotate": "Hold Shift and scroll the mouse wheel to rotate the preview."
             }
         },
         "error": {
-            "pf2eDeleteError": "PF2e: Error deleting finalized template",
-            "pf2ePreviewError": "PF2e: Error handling preview",
-            "dnd5ePreviewError": "DND5e: Error during template preview"
+            "invalidSize": "Enter an area size greater than zero.",
+            "tokenPermission": "Select an owned token with an actor to preview its item areas.",
+            "noCanvas": "Open a scene before previewing an area.",
+            "previewFailed": "The area preview could not be completed. See the console for details."
         }
     }
 }

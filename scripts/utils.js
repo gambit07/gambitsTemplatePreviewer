@@ -6,6 +6,8 @@ export function animateTitleBar(dialog) {
 
     const duration = 20000;
     let startTime = null;
+    let stopped = false;
+    let frame;
 
     titleBackground.style.border = "2px solid";
     titleBackground.style.borderImageSlice = 1;
@@ -14,6 +16,7 @@ export function animateTitleBar(dialog) {
     let highlightColor = getDialogColors().highlightColor;
 
     function step(timestamp) {
+        if (stopped || !titleBackground.isConnected) return;
         if (!startTime) startTime = timestamp;
         const elapsed = timestamp - startTime;
         const progress = (elapsed % duration) / duration;
@@ -22,10 +25,11 @@ export function animateTitleBar(dialog) {
         
         titleBackground.style.borderImage = `linear-gradient(${angle}deg, ${baseColor}, ${highlightColor}, ${baseColor}) 1`;
         
-        requestAnimationFrame(step);
+        frame = requestAnimationFrame(step);
     }
 
-    requestAnimationFrame(step);
+    frame = requestAnimationFrame(step);
+    return () => { stopped = true; cancelAnimationFrame(frame); };
 }
 
 function getDialogColors() {
@@ -56,142 +60,63 @@ function addAlphaToRgb(rgbString, alpha) {
     return rgbString;
   }
 
-export function getPickedTokens(isV4) {
-  if (canvas.tokens.controlled.length === 1) {
-      const selectedToken = canvas.tokens.controlled[0];
-      if (selectedToken.document.testUserPermission(game.user, "OWNER") || game.user.isGM) {
-          return [selectedToken];
-      } else {
-          ui.notifications.warn("You do not have permission to use the template tool on the selected token.");
-          return [];
-      }
-  } else {
-      let tokens = canvas.tokens.controlled.length > 1
-          ? canvas.tokens.controlled
-          : canvas.tokens.placeables.filter(token => (token.actor?.hasPlayerOwner && token.document.testUserPermission(game.user, "OWNER")) || game.user.isGM);
-
-      return tokens.filter(token => token?.actor?.items.some(item => hasValidTemplate(item, isV4)));
+/** Select owned tokens with usable item areas. */
+export function getPickedTokens() {
+  const controlled = canvas.tokens.controlled;
+  const owned = token => token.actor && (game.user.isGM || token.document.testUserPermission(game.user, "OWNER"));
+  if (controlled.length === 1) {
+    if (owned(controlled[0])) return [controlled[0]];
+    ui.notifications.warn(game.i18n.localize("gambitsTemplatePreviewer.error.tokenPermission"));
+    return [];
   }
+  return (controlled.length ? controlled : canvas.tokens.placeables)
+    .filter(token => owned(token) && token.actor.items.some(item => hasValidTemplate(item)));
 }
 
-export function getTemplateData(item, isV4) {
+/** Convert dnd5e activity dimensions to scene units. */
+function sceneDistance(value, units) {
+  const distance = Number(value);
+  if (!Number.isFinite(distance)) return NaN;
+  return game.dnd5e.utils.convertLength(distance, units, canvas.scene.grid.units, { strict: false });
+}
+
+/** Collect each valid activity area, preserving its dimensions and placement count. */
+export function getTemplateData(item) {
   if (game.system.id === "pf2e") {
     const area = item.system.area;
-    if (area) {
-      let targetType, targetSize, targetWidth;
-      switch (area.type) {
-        case "burst":
-        case "emanation":
-        case "cone":
-        case "line":
-          targetType = area.type;
-          targetSize = area.value;
-          targetWidth = area.width ?? null;
-          break;
-        default:
-          targetType = null;
-          targetSize = null;
-          targetWidth = null;
-      }
-      return { 
-        templates: [{
-          targetType,
-          targetSize,
-          targetWidth,
-          label: item.name
-        }]
-      };
-    }
-    return { templates: [] };
-  } else {
-    if (isV4) {
-      let templates = [];
-      if (item.system.activities?.contents) {
-        const ignoredNames = new Set(["Attack", "Cast", "Check", "Damage", "Enchant", "Forward", "Heal", "Save", "Summon", "Use"]);
-        
-        templates = item.system.activities.contents
-          .filter(activity => activity.target?.template?.type)
-          .map(activity => {
-            const activityName = activity.name ? activity.name.trim() : "";
-            let label;
-            
-            if (!activityName || ignoredNames.has(activityName) || item.name === activityName) {
-              label = item.name;
-            } else {
-              label = `${item.name}: ${activityName}`;
-            }
-            
-            return {
-              targetType: activity.target.template.type,
-              targetSize: activity.target.template.size,
-              targetWidth: activity.target.template.width ?? undefined,
-              label
-            };
-          });
-      }
-      if (!templates.length) {
-        templates.push({
-          targetType: item.system.target?.template?.type,
-          targetSize: item.system.target?.template?.size,
-          targetWidth: item.system.target?.template?.width ?? undefined,
-          label: item.name
-        });
-      }
-      return { templates };
-    } else {
-      return { 
-        templates: [{
-          targetType: item.system?.target?.type,
-          targetSize: item.system?.target?.value,
-          targetWidth: item.system?.target?.width ?? undefined,
-          label: item.name
-        }]
-      };
-    }
+    const validTypes = ["burst", "emanation", "cone", "line", "cube", "square", "cylinder", "ring"];
+    return { templates: area && validTypes.includes(area.type) && Number(area.value) > 0 ? [{
+      targetType: area.type, targetSize: Number(area.value), targetWidth: Number(area.width) || undefined,
+      targetCount: 1, label: item.name, units: "ft"
+    }] : [] };
   }
-}
-
-export function hasValidTemplate(item, isV4) {
-  if (game.system.id === "pf2e") {
-    const area = item.system.area;
-    if (!area || !area.type || !area.value) return false;
-    if (!["burst", "cone", "emanation", "line"].includes(area.type)) return false;
-    return true;
-  } else {
-    let targetType, targetSize;
-    if (isV4) {
-      const activityWithTarget = item.system.activities?.contents.find(activity => activity.target?.template);
-      if (activityWithTarget) {
-          targetType = activityWithTarget.target.template.type;
-          targetSize = activityWithTarget.target.template.size;
-      } else {
-          targetType = item.system.target?.template?.type;
-          targetSize = item.system.target?.template?.size;
-      }
-    } else {
-      targetType = item.system?.target?.type;
-      targetSize = item.system?.target?.value;
-    }
-    if (!targetSize || !["cone", "cube", "cylinder", "line", "radius", "sphere", "square", "wall", "circle", "emanationNoTemplate"].includes(targetType)) {
-      return false;
-    }
-    if (item.type === "spell" && (item.system.level > 0 && foundry.utils.isNewerVersion(game.system.version, "5.1.0") ? (item.system.method === "spell" && !item.system.prepared) : (item.system.preparation?.mode === "prepared" && !item.system.preparation.prepared))) {
-      return false;
-    }
-    return true;
-  }
-}
-
-export function getWalledTemplateFlags(item, type) {
-  if (!game.modules.get("walledtemplates")?.active) return {};
-
-  return {
-      wallsBlock: item?.flags?.walledtemplates?.wallsBlock ?? "globalDefault",
-      wallRestriction: item?.flags?.walledtemplates?.wallRestriction ?? "globalDefault",
-      snapCenter: item?.flags?.walledtemplates?.snapCenter ?? game.settings.get('walledtemplates', `default-${type}-snapping-center`) ?? false,
-      snapCorner: item?.flags?.walledtemplates?.snapCorner ?? game.settings.get('walledtemplates', `default-${type}-snapping-corner`) ?? false,
-      snapSideMidpoint: item?.flags?.walledtemplates?.snapSideMidpoint ?? game.settings.get('walledtemplates', `default-${type}-snapping-side-midpoint`) ?? false
+  const templates = [];
+  const addTemplate = (target, label) => {
+    if (!target) return;
+    const type = target.type;
+    const supported = CONFIG.DND5E.areaTargetTypes[type]?.template;
+    const size = sceneDistance(target.size, target.units);
+    if (!supported || !Number.isFinite(size) || size <= 0) return;
+    templates.push({
+      targetType: type, targetSize: size, targetWidth: sceneDistance(target.width, target.units),
+      targetCount: Number(target.count) || 1, label, units: canvas.scene.grid.units
+    });
   };
+  for (const activity of item.system.activities?.contents ?? []) {
+    const name = activity.name?.trim();
+    const title = CONFIG.DND5E.activityTypes[activity.type]?.documentClass?.metadata?.title;
+    const standardName = title && game.i18n.localize(title);
+    const label = !name || name === item.name || name === standardName ? item.name : `${item.name}: ${name}`;
+    addTemplate(activity.target?.template, label);
+  }
+  return { templates };
+}
+
+/** Exclude unprepared spells and items without any valid area activity. */
+export function hasValidTemplate(item) {
+  if (game.system.id === "dnd5e" && item.type === "spell" && item.system.level > 0
+    && item.system.method === "spell" && !item.system.prepared) return false;
+  return getTemplateData(item).templates.length > 0;
 }
 
 export async function displayNewVersionDialog() {

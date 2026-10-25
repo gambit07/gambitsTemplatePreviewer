@@ -1,5 +1,6 @@
 import * as utils from './utils.js';
 import { MODULE_ID } from "./module.js";
+import { previewTemplate } from "./placement.js";
 
 function setControlsDisabled(dialog, disabled) {
     dialog.querySelector('#token-select')?.setAttribute('disabled', disabled);
@@ -46,13 +47,14 @@ function addSliderListeners(dialog) {
     }
 }
 
-function generateItemOptions(items, isV4) {
-    const gridUnits = canvas.scene.grid.units;
+function generateItemOptions(items) {
+    const escape = foundry.utils.escapeHTML;
     return items.map(item => {
-        const { templates } = utils.getTemplateData(item, isV4);
+        const { templates } = utils.getTemplateData(item);
 
-        return templates.map(template => {
-        return `<option value="${item.id}" data-type="${template.targetType}" data-size="${template.targetSize}" data-width="${template.targetWidth}"> ${template.label} (${template.targetSize} ${gridUnits} ${template.targetType === "emanationNoTemplate" ? "emanation" : template.targetType}${template.targetWidth ? `, ${template.targetWidth} ${gridUnits} ${game.i18n.format("gambitsTemplatePreviewer.dialog.options.width")}` : ""})</option>`;
+        return templates.map((template, index) => {
+        const units = escape(template.units ?? "");
+        return `<option value="${item.id}" data-template-index="${index}"> ${escape(template.label)} (${template.targetSize} ${units} ${escape(template.targetType)}${template.targetWidth ? `, ${template.targetWidth} ${units} ${game.i18n.localize("gambitsTemplatePreviewer.dialog.options.width")}` : ""})</option>`;
         }).join("");
     }).join("");
 }
@@ -98,26 +100,27 @@ function generateSliderInputs(gridUnits, previewInProgress) {
 }
 
 export async function generateTemplate() {
+    if (!canvas.ready || !canvas.scene) return ui.notifications.warn(game.i18n.localize("gambitsTemplatePreviewer.error.noCanvas"));
     if (game.gambitsTemplatePreviewer.dialogOpen) return;
     game.gambitsTemplatePreviewer.dialogOpen = true;
     
-    const isV4 = foundry.utils.isNewerVersion(game.system.version, "3.9.9");
     const gridUnits = canvas.scene.grid.units;
 
-    let pickedTokens = utils.getPickedTokens(isV4);
+    let pickedTokens = utils.getPickedTokens();
     let tokenOptions = [];
     let items = [];
     let itemOptions;
 
     if (pickedTokens.length > 0) {
-        tokenOptions = pickedTokens.map(token => `<option value="${token.id}">${token.name}</option>`).join("");
-        items = pickedTokens[0].actor.items.filter(item => utils.hasValidTemplate(item, isV4)).sort((a, b) => a.name.localeCompare(b.name));
-        itemOptions = generateItemOptions(items, isV4);
+        tokenOptions = pickedTokens.map(token => `<option value="${token.id}">${foundry.utils.escapeHTML(token.name)}</option>`).join("");
+        items = pickedTokens[0].actor.items.filter(item => utils.hasValidTemplate(item)).sort((a, b) => a.name.localeCompare(b.name));
+        itemOptions = generateItemOptions(items);
     }
 
     const userFlags = game.user.getFlag(MODULE_ID, "dialog-position-generateTemplate");
 
     let previewInProgress = false;
+    let stopTitleAnimation;
     const sliderInputs = generateSliderInputs(gridUnits, previewInProgress);
 
     await foundry.applications.api.DialogV2.wait({
@@ -126,7 +129,6 @@ export async function generateTemplate() {
             minimizable: true
         },
         content: `
-            <form>
             <div style="width: 500px;">
             ${pickedTokens.length > 1 ? `
                 <div class="form-group">
@@ -137,10 +139,10 @@ export async function generateTemplate() {
                 </div>
                 <hr style="background: none; border: none; height: 2px; background-image: linear-gradient(to right, transparent, var(--color-border-highlight), transparent); margin: 1.5em 0;"/>
             ` : ''}
-            ${items.length > 0 ? `
+            ${pickedTokens.length > 0 ? `
                 <div class="form-group">
-                <label for="item-select">${game.i18n.format("gambitsTemplatePreviewer.dialog.label.selectItemAoe")}:</label>
-                <select id="item-select" name="item-select" ${previewInProgress ? 'disabled' : ''}>
+                <label for="item-select" data-tooltip="gambitsTemplatePreviewer.dialog.tooltip.rotate">${game.i18n.format("gambitsTemplatePreviewer.dialog.label.selectItemAoe")}:</label>
+                <select id="item-select" name="item-select" data-tooltip="gambitsTemplatePreviewer.dialog.tooltip.rotate" ${previewInProgress ? 'disabled' : ''}>
                     <option value="" selected>-- ${game.i18n.format("gambitsTemplatePreviewer.dialog.options.selectAnItem")} --</option>
                     ${itemOptions}
                 </select>
@@ -148,18 +150,18 @@ export async function generateTemplate() {
                 <hr style="background: none; border: none; height: 2px; background-image: linear-gradient(to right, transparent, var(--color-border-highlight), transparent); margin: 1.5em 0;"/>
             ` : ''}
                 <div class="form-group">
-                <label>${game.i18n.format("gambitsTemplatePreviewer.dialog.label.selectGenericAoe")}:</label>
+                <label data-tooltip="gambitsTemplatePreviewer.dialog.tooltip.rotate">${game.i18n.format("gambitsTemplatePreviewer.dialog.label.selectGenericAoe")}:</label>
                 <div class="template-buttons" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                    <button type="button" id="circle-template" class="template-btn" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
+                    <button type="button" id="circle-template" class="template-btn" data-tooltip="gambitsTemplatePreviewer.dialog.tooltip.rotate" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-circle"></i> ${game.i18n.format("gambitsTemplatePreviewer.dialog.label.circle")}
                     </button>
-                    <button type="button" id="rect-template" class="template-btn" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
+                    <button type="button" id="rect-template" class="template-btn" data-tooltip="gambitsTemplatePreviewer.dialog.tooltip.rotate" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-square"></i> ${game.i18n.format("gambitsTemplatePreviewer.dialog.label.square")}
                     </button>
-                    <button type="button" id="cone-template" class="template-btn" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
+                    <button type="button" id="cone-template" class="template-btn" data-tooltip="gambitsTemplatePreviewer.dialog.tooltip.rotate" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
                     <i class="fa-solid fa-triangle"></i> ${game.i18n.format("gambitsTemplatePreviewer.dialog.label.cone")}
                     </button>
-                    <button type="button" id="ray-template" class="template-btn" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
+                    <button type="button" id="ray-template" class="template-btn" data-tooltip="gambitsTemplatePreviewer.dialog.tooltip.rotate" ${previewInProgress ? 'disabled' : ''} style="display: flex; align-items: center; gap: 10px;">
                     <i class="fas fa-arrows-alt-h"></i> ${game.i18n.format("gambitsTemplatePreviewer.dialog.label.line")}
                     </button>
                 </div>
@@ -167,7 +169,6 @@ export async function generateTemplate() {
                 <hr style="background: none; border: none; height: 2px; background-image: linear-gradient(to right, transparent, var(--color-border-highlight), transparent); margin: 1em 0;"/>
                 ${sliderInputs}
             </div>
-            </form>
         `,
         buttons: [{
             action: "close",
@@ -179,7 +180,8 @@ export async function generateTemplate() {
 			const dialog = event.target.element;
 			const dialogInstance = event.target;
 
-            utils.animateTitleBar(dialogInstance);
+            stopTitleAnimation?.();
+            stopTitleAnimation = utils.animateTitleBar(dialogInstance);
 
 			if (userFlags) {
 				dialogInstance.setPosition({ top: userFlags.top, left: userFlags.left });
@@ -188,6 +190,27 @@ export async function generateTemplate() {
             game.gambitsTemplatePreviewer.dialogInstance = dialogInstance;
 
             addSliderListeners(dialog);
+
+            const runPreview = async configuration => {
+                if (previewInProgress || game.gambitsTemplatePreviewer.previewInProgress) return;
+                previewInProgress = game.gambitsTemplatePreviewer.previewInProgress = true;
+                setControlsDisabled(dialog, true);
+                try {
+                    await dialogInstance.minimize();
+                    await previewTemplate(configuration);
+                } catch (error) {
+                    console.error("Gambit's Template Previewer |", error);
+                    ui.notifications.error(game.i18n.localize("gambitsTemplatePreviewer.error.previewFailed"));
+                } finally {
+                    previewInProgress = game.gambitsTemplatePreviewer.previewInProgress = false;
+                    if (dialogInstance.rendered) {
+                        await dialogInstance.maximize();
+                        setControlsDisabled(dialog, false);
+                        const select = dialog.querySelector('#item-select');
+                        if (select) select.value = "";
+                    }
+                }
+            };
 
 			const templateButtons = {
 				circle: dialog.querySelector('#circle-template'),
@@ -198,21 +221,11 @@ export async function generateTemplate() {
 
 			Object.keys(templateButtons).forEach(type => {
 				if (templateButtons[type]) {
-                    const walledTemplateFlags = utils.getWalledTemplateFlags({}, type);
 					templateButtons[type].addEventListener('click', async () => {
-						if (previewInProgress) return;
-						previewInProgress = true;
-						setControlsDisabled(dialog, true);
-
-                        let targetSize = parseFloat(dialog.querySelector('#template-size')?.value);
-                        let targetWidth = parseFloat(dialog.querySelector('#template-width')?.value);
-
-                        await dialogInstance.minimize();
-						await previewTemplate(type, targetSize, targetWidth, walledTemplateFlags);
-                        await dialogInstance.maximize();
-
-						previewInProgress = false;
-						setControlsDisabled(dialog, false);
+                        await runPreview({ type,
+                            size: Number(dialog.querySelector('#template-size-display')?.value),
+                            width: Number(dialog.querySelector('#template-width-display')?.value)
+                        });
 					});
 				}
 			});
@@ -225,8 +238,8 @@ export async function generateTemplate() {
 					const selectedTokenId = this.value;
 					selectedToken = pickedTokens.find(token => token.id === selectedTokenId);
 					if (selectedToken) {
-						items = selectedToken.actor.items.filter(item => utils.hasValidTemplate(item, isV4)).sort((a, b) => a.name.localeCompare(b.name));
-						itemOptions = generateItemOptions(items, isV4);
+						items = selectedToken.actor.items.filter(item => utils.hasValidTemplate(item)).sort((a, b) => a.name.localeCompare(b.name));
+						itemOptions = generateItemOptions(items);
 
 						const itemSelect = dialog.querySelector('#item-select');
 						if (itemSelect) {
@@ -244,64 +257,18 @@ export async function generateTemplate() {
 					const selectedItemId = this.value;
                     const selectedItem = items.find(item => item.id === selectedItemId);
                     if (selectedItem) {
-                        const selectedOption = this.options[this.selectedIndex];
-                        const targetType = selectedOption.getAttribute("data-type");
-                        let targetSize = parseFloat(selectedOption.getAttribute("data-size"));
-                        let targetWidth = parseFloat(selectedOption.getAttribute("data-width"));
-
-                        const distConfig = ["meters", "m", "mt", "metri"].includes(gridUnits.toLowerCase())
-                        ? "meters"
-                        : "feet";
-                        if (isNaN(targetWidth)) distConfig === "feet" ? targetWidth = 5 : targetWidth === 1.5;
-
-                        let chosenToken = selectedToken ?? pickedTokens[0];
-
-                        if(["emanation", "emanationNoTemplate"].includes(targetType)) {
-                            const tokenSizeOffset = Math.max(chosenToken?.document?.width, chosenToken?.document?.height) * 0.5 * canvas.scene.dimensions.distance;
-                            targetSize += tokenSizeOffset;
-                        }
-
-                        let previewTemplateType;
-                        switch (targetType) {
-                            case "sphere":
-                            case "radius":
-                            case "burst":
-                            case "emanation":
-                            case "cylinder":
-                            case "circle":
-                            case "emanationNoTemplate":
-                            previewTemplateType = 'circle';
-                            break;
-                            case "cube":
-                            case "square":
-                            previewTemplateType = 'rect';
-                            break;
-                            case "cone":
-                            previewTemplateType = 'cone';
-                            break;
-                            case "line":
-                            case "wall":
-                            previewTemplateType = 'ray';
-                            break;
-                        }
-
-                        if (previewTemplateType) {
-                            previewInProgress = true;
-                            const walledTemplateFlags = utils.getWalledTemplateFlags(selectedItem, previewTemplateType);
-                            setControlsDisabled(dialog, true);
-
-                            await dialogInstance.minimize();
-                            await previewTemplate(previewTemplateType, targetSize, targetWidth, walledTemplateFlags);
-                            await dialogInstance.maximize();
-
-                            previewInProgress = false;
-                            setControlsDisabled(dialog, false);
-                        }
+                        const template = utils.getTemplateData(selectedItem).templates[Number(this.options[this.selectedIndex].dataset.templateIndex)];
+                        if (!template) return;
+                        await runPreview({
+                            type: template.targetType, size: template.targetSize, width: template.targetWidth,
+                            count: template.targetCount, item: selectedItem, token: selectedToken ?? pickedTokens[0]
+                        });
                     }
 				});
 			}
 		},
         close: (event) => {
+            stopTitleAnimation?.();
             const { top, left } = event.target.position;
             game.user.setFlag(MODULE_ID, "dialog-position-generateTemplate", { top, left });
             game.gambitsTemplatePreviewer.dialogOpen = false;
@@ -311,78 +278,3 @@ export async function generateTemplate() {
     });
 }
   
-async function previewTemplate(templateType, targetSize, targetWidth, walledTemplateFlags) {
-    let size = targetSize;
-    let width = templateType === 'ray' ? targetWidth : undefined;
-    let actualTemplateType = (templateType === "rect") ? "ray" : templateType;
-    
-    const templateData = {
-      t: actualTemplateType,
-      user: game.user.id,
-      direction: 0,
-      angle: templateType === "cone"
-        ? CONFIG.MeasuredTemplate.defaults.angle
-        : templateType === "rect"
-        ? 90
-        : 0,
-      distance: size,
-      borderColor: "#FF0000",
-      fillAlpha: 0.5,
-      fillColor: game.user.color,
-      hidden: false,
-      width: templateType === "ray" ? width : templateType === "rect" ? size : undefined,
-      flags: { walledtemplates: walledTemplateFlags }
-    };
-  
-    if (game.system.id === "pf2e") {
-      try {
-        await canvas.templates.createPreview(templateData);
-        
-        const deletionPromise = new Promise((resolve) => {
-          const onFinalization = async (document) => {
-            try {
-              await canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", [document.id]);
-            } catch (err) {
-              console.error(game.i18n.format("gambitsTemplatePreviewer.error.pf2eDeleteError"), err);
-            }
-            cleanup();
-            resolve();
-          };
-  
-          const onRightClick = (event) => {
-            event.stopImmediatePropagation();
-            event.stopPropagation();
-            cleanup();
-            resolve();
-          };
-  
-          function cleanup() {
-            Hooks.off("createMeasuredTemplate", onFinalization);
-            canvas.stage.off("rightdown", onRightClick);
-          }
-  
-          Hooks.once("createMeasuredTemplate", onFinalization);
-          canvas.stage.once("rightdown", onRightClick);
-        });
-        
-        await deletionPromise;
-      } catch (error) {
-        console.error(game.i18n.format("gambitsTemplatePreviewer.error.pf2ePreviewError"), error);
-      }
-    } else {
-      const templateDoc = new CONFIG.MeasuredTemplate.documentClass(templateData, { parent: canvas.scene });
-      const template = new game.dnd5e.canvas.AbilityTemplate(templateDoc);
-    
-      try {
-        const createdTemplates = await template.drawPreview();
-        if (createdTemplates.length > 0) {
-          const firstTemplate = createdTemplates[0];
-          await firstTemplate.delete();
-        }
-      } catch (error) {
-        console.error(game.i18n.format("gambitsTemplatePreviewer.error.dnd5ePreviewError"), error);
-      }
-
-      game.user.targets.forEach(token => token.setTarget(false, { user: game.user }));
-    }
-  }
