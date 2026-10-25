@@ -1,5 +1,9 @@
 # Changelog
 
+## [v2.2.1] - 2026-10-25
+- Added DND5e 6.x support AND PF2e 8.x support! Both now use native region creation instead of template handling. Template Previewer is now V14+ only.
+- Added new localization noting that regions can be rotated with the Shift key
+
 ## [v2.2.0] - 2026-10-25
 - Added DND5e 6.x support AND PF2e 8.x support! Both now use native region creation instead of template handling. Template Previewer is now V14+ only.
 - Added new localization noting that regions can be rotated with the Shift key
