@@ -19,7 +19,7 @@
         },
         "dialog": {
             "options": {
-                "width": "Procurar ícones...",
+                "width": "largura",
                 "selectAnItem": "Selecione um Item"
             },
             "label": {
@@ -43,12 +43,16 @@
                 "close": "Fechar",
                 "edit": "Editar",
                 "delete": "Excluir"
+            },
+            "tooltip": {
+                "rotate": "Mantenha Shift pressionado e gire a roda do mouse para rotacionar a pré-visualização."
             }
         },
         "error": {
-            "pf2eDeleteError": "PF2e: Erro ao excluir modelo finalizado",
-            "pf2ePreviewError": "PF2e: Erro ao revolver a visualização",
-            "dnd5ePreviewError": "DND5e: Erro durante a visualização do modelo"
+            "invalidSize": "Insira um tamanho de área maior que zero.",
+            "tokenPermission": "Selecione um token que você possui, com um ator associado, para pré-visualizar as áreas de seus itens.",
+            "noCanvas": "Abra uma cena antes de pré-visualizar uma área.",
+            "previewFailed": "Não foi possível concluir a pré-visualização da área. Consulte o console para obter mais detalhes."
         }
     }
 }
